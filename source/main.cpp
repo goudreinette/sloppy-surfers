@@ -73,9 +73,9 @@ void draw_3d_scene(void *arg) {
         trein::update_draw(scene, keys_held, keys_down);
     } else {
         float lerp_speed = 0.2;
-        cam_y = lerp(cam_y, target_cam_y, lerp_speed);
-        cam_x = lerp(cam_x, target_cam_x, lerp_speed);
-        cam_z = lerp(cam_z, target_cam_z, lerp_speed);
+        cam_y = utils::lerp(cam_y, target_cam_y, lerp_speed);
+        cam_x = utils::lerp(cam_x, target_cam_x, lerp_speed);
+        cam_z = utils::lerp(cam_z, target_cam_z, lerp_speed);
     }
 
     NE_CameraSet(scene->camera,

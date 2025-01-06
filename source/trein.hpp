@@ -29,7 +29,6 @@ namespace trein {
     // ground
     int ground_start_z = 0;
 
-
     // lanes
     int distance = 6;
     int current_lane = 1;
@@ -38,7 +37,6 @@ namespace trein {
     struct train {
         float z = 20;
         float scale = 2;
-
         float x;
     };
 
@@ -98,7 +96,6 @@ namespace trein {
             track_start_z += 7;
         }
 
-
         // draw trains
         NE_PolyFormat(31, scene->trein_poly_id, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
 
@@ -123,7 +120,6 @@ namespace trein {
         }
 
 
-
         // auto switching lanes
         if (rand() % 150 == 1) {
             int ii = rand() % 2;
@@ -134,7 +130,6 @@ namespace trein {
                 current_lane++;
             }
         }
-
 
         train train_in_lane = trains[current_lane + 1];
         if (train_in_lane.z < cam_z + 20) {
@@ -151,9 +146,9 @@ namespace trein {
             target_cam_x = distance;
         }
 
-        float lerp_speed = map(speed, 0.0, 3.0, 0.1, 0.6);
-        cam_y = lerp(cam_y, target_cam_y, lerp_speed);
-        cam_x = lerp(cam_x, target_cam_x, lerp_speed);
+        float lerp_speed = utils::map(speed, 0.0, 3.0, 0.1, 0.6);
+        cam_y = utils::lerp(cam_y, target_cam_y, lerp_speed);
+        cam_x = utils::lerp(cam_x, target_cam_x, lerp_speed);
 
 //        printf("\n \n %i", cam_z_int);
 //        printf("\n \n %i", track_start_z);
