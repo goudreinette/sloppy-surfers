@@ -54,7 +54,6 @@ namespace wout_bust {
 
         float spawnZ = touch.rawx / ( (float) SCREEN_WIDTH / 32);
 
-//        printf("\n \n %f",  spawnZ);
 
         if (keys_held & KEY_TOUCH) {
             ry = spawnZ + 110;
