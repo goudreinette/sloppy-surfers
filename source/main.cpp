@@ -21,6 +21,9 @@
 #include "wout3d.hpp"
 #include "trein.hpp"
 
+#include "test_character_animation.hpp"
+#include "test_dual_sceen.hpp"
+
 
 
 
