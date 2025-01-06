@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "../../include/utils.hpp"
+#include "utils.hpp"
 #include "scene_data.hpp"
 
 // assets

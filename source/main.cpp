@@ -63,10 +63,10 @@ void draw_3d_scene(void *arg) {
 
 
     // Display sloppy text
-    NE_ModelSetRot(scene->wout_head, 0, ry, 0);
-    NE_ModelScale(scene->sloppy_text, 100, 100, 10);
-    NE_ModelSetCoord(scene->sloppy_text, 0,-12,0);
-    NE_ModelDraw(scene->sloppy_text);
+    // NE_ModelSetRot(scene->wout_head, 0, ry, 0);
+    // NE_ModelScale(scene->sloppy_text, 100, 100, 10);
+    // NE_ModelSetCoord(scene->sloppy_text, 0,-12,0);
+    // NE_ModelDraw(scene->sloppy_text);
 
 
     if (trein_active) {

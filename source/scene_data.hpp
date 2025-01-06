@@ -29,7 +29,7 @@ float target_cam_x = cam_x;
 float target_cam_z = cam_z;
 
 // states
-bool trein_active = false;
+bool trein_active = true;
 bool storm_active = true;
 
 float speed = 0.2;
