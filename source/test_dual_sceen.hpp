@@ -52,9 +52,9 @@ namespace test_dual_screen {
     };
 
     train trains[] = {
-        // train{.z = 50 + rand() % 20, .x = -distance}, // left
+        train{.z = 50 + rand() % 20, .x = -distance}, // left
         train{.z =  50 + rand() % 20, .x = 0}, // center
-        // train{.z =  50 + rand() % 20, .x = distance} // right
+        train{.z =  50 + rand() % 20, .x = distance} // right
     };
 
 
@@ -65,6 +65,9 @@ namespace test_dual_screen {
         SceneData *Scene = (SceneData*) arg;
 
         NE_ClearColorSet(NE_Green, 31, 63);
+
+        NE_PolyFormat(31, 1, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
+
 
         NE_CameraUse(Scene->CameraTop);
 
@@ -81,6 +84,9 @@ namespace test_dual_screen {
         SceneData *Scene = (SceneData*) arg;
 
         NE_ClearColorSet(NE_Red, 31, 63);
+
+        NE_PolyFormat(31, 1, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
+
 
         NE_CameraUse(Scene->CameraBottom);
 
@@ -113,7 +119,6 @@ namespace test_dual_screen {
 
         // Load models
         NE_ModelLoadStaticMesh(Scene->Teapot, trein_bin);
-        NE_ModelLoadStaticMesh(Scene->Sphere, trein_bin);
 
         // Material
         material = NE_MaterialCreate();
