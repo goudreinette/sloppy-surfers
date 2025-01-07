@@ -50,8 +50,8 @@ namespace test_dual_screen {
                     0, 1, 0);
         
         NE_CameraSet(Scene->CameraBottom,
-                    0, 2.5, -2,
-                    0, 2.5, 0,
+                    0, .5, -2,
+                    0, 3.5, 0,
                     0, 1, 0);
 
         // Load models
