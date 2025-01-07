@@ -103,37 +103,14 @@ namespace test_dual_screen {
             uint32_t keys = keysHeld();
             uint32_t kdown = keysDown();
 
-            if (console)
-            {
-                printf("\x1b[0;0H"
-                    "START: Lock CPU until released\n"
-                    "A: Sine effect.\n"
-                    "B: Deactivate effect.\n"
-                    "SELECT: Dual 3D DMA mode\n"
-                    "X: Dual 3D FB mode (no console)\n"
-                    "Y: Dual 3D mode\n"
-                    "Pad: Rotate.\n");
-            }
-
-            // Lock CPU in an infinite loop to simulate a drop in framerate
-            while (keys & KEY_START)
-            {
-                scanKeys();
-                keys = keysHeld();
-            }
-
             // Rotate model
             if (keys & KEY_UP)
             {
-                // NE_ModelRotate(Scene.Sphere, 0, 0, 2);
-                // NE_ModelRotate(Scene.Teapot, 0, 0, 2);
                 NE_ModelTranslate(Scene.Sphere, 0, 0, 0.5);
                 NE_ModelTranslate(Scene.Teapot, 0, 0, 0.5);
             }
             if (keys & KEY_DOWN)
             {
-                // NE_ModelRotate(Scene.Sphere, 0, 0, -2);
-                // NE_ModelRotate(Scene.Teapot, 0, 0, -2);
                 NE_ModelTranslate(Scene.Sphere, 0, 0, -.5);
                 NE_ModelTranslate(Scene.Teapot, 0, 0, -.5);
             }
@@ -146,37 +123,6 @@ namespace test_dual_screen {
             {
                 NE_ModelRotate(Scene.Sphere, 0, -2, 0);
                 NE_ModelRotate(Scene.Teapot, 0, -2, 0);
-            }
-
-            // Deactivate effect
-            if (kdown & KEY_B)
-                // NE_SpecialEffectSet(0);
-            // Activate effect
-            if (kdown & KEY_A)
-                NE_SpecialEffectSet(NE_SINE);
-
-            if (kdown & KEY_Y)
-            {
-                // NE_SpecialEffectSet(0);
-                NE_InitDual3D();
-                NE_InitConsole();
-                init_all(&Scene);
-                console = true;
-            }
-            if (kdown & KEY_X)
-            {
-                // NE_SpecialEffectSet(0);
-                NE_InitDual3D_FB();
-                init_all(&Scene);
-                console = false;
-            }
-            if (kdown & KEY_SELECT)
-            {
-                // NE_SpecialEffectSet(0);
-                NE_InitDual3D_DMA();
-                NE_InitConsole();
-                init_all(&Scene);
-                console = true;
             }
         }
 
