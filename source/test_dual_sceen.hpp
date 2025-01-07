@@ -4,9 +4,12 @@
 
 #include "teapot_bin.h"
 #include "sphere_bin.h"
+#include "trein_bin.h"
 
+#include "mp3.h"
 
 namespace test_dual_screen {
+    NE_Material *material;
     
     typedef struct {
         NE_Camera *CameraTop, *CameraBottom;
@@ -44,19 +47,28 @@ namespace test_dual_screen {
         Scene->CameraBottom = NE_CameraCreate();
 
         // Setup camera
+        float z_distance = -10;
         NE_CameraSet(Scene->CameraTop,
-                    0, 0, -2,
-                    0, 0, 0,
+                    0, 2, z_distance,
+                    0, -20, 0,
                     0, 1, 0);
         
         NE_CameraSet(Scene->CameraBottom,
-                    0, .5, -2,
-                    0, 3.5, 0,
+                    0, 2.5, z_distance,
+                    0, 0, 0,
                     0, 1, 0);
 
         // Load models
-        NE_ModelLoadStaticMesh(Scene->Teapot, teapot_bin);
-        NE_ModelLoadStaticMesh(Scene->Sphere, sphere_bin);
+        NE_ModelLoadStaticMesh(Scene->Teapot, trein_bin);
+        NE_ModelLoadStaticMesh(Scene->Sphere, trein_bin);
+
+        // Material
+        material = NE_MaterialCreate();
+        NE_MaterialTexLoad(material, NE_RGB5, 256, 256, NE_TEXGEN_TEXCOORD, mp3Bitmap);
+        NE_MaterialSetProperties(material,RGB15(31, 31, 31),RGB15(5,5,5),RGB15(15, 15, 15),RGB15(15, 15, 15),false, false);
+
+        NE_ModelSetMaterial(Scene->Teapot, material);
+        NE_ModelSetMaterial(Scene->Sphere, material);
 
         // Set light color and direction
         NE_LightSet(0, NE_White, -0.5, -0.5, -0.5);
@@ -115,15 +127,15 @@ namespace test_dual_screen {
             {
                 // NE_ModelRotate(Scene.Sphere, 0, 0, 2);
                 // NE_ModelRotate(Scene.Teapot, 0, 0, 2);
-                NE_ModelTranslate(Scene.Sphere, 0, 0.5, 0);
-                NE_ModelTranslate(Scene.Teapot, 0, 0.5, 0);
+                NE_ModelTranslate(Scene.Sphere, 0, 0, 0.5);
+                NE_ModelTranslate(Scene.Teapot, 0, 0, 0.5);
             }
             if (keys & KEY_DOWN)
             {
                 // NE_ModelRotate(Scene.Sphere, 0, 0, -2);
                 // NE_ModelRotate(Scene.Teapot, 0, 0, -2);
-                NE_ModelTranslate(Scene.Sphere, 0, -.5, 0);
-                NE_ModelTranslate(Scene.Teapot, 0, -.5, 0);
+                NE_ModelTranslate(Scene.Sphere, 0, 0, -.5);
+                NE_ModelTranslate(Scene.Teapot, 0, 0, -.5);
             }
             if (keys & KEY_RIGHT)
             {
