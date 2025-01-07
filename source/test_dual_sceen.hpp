@@ -16,6 +16,48 @@ namespace test_dual_screen {
         NE_Model *Teapot, *Sphere;
     } SceneData;
 
+
+    // camera
+    float cam_y = 0.0;
+    float cam_z = -10.0;
+    float cam_x = 0.0;
+
+    float target_cam_y = cam_y;
+    float target_cam_x = cam_x;
+    float target_cam_z = cam_z;
+    
+    // speed
+    float speed = 0.2;
+
+    // tracks
+    float track_height = -3;
+    const int num_track_parts = 7;
+    int track_gap = 7;
+    int track_start_z = 0;
+
+    // ground
+    int ground_start_z = 0;
+
+    // lanes
+    int distance = 6;
+    int current_lane = 1;
+
+    float z_distance = -10;
+
+
+    struct train {
+        float z = 20;
+        float scale = 2;
+        float x;
+    };
+
+    train trains[] = {
+        // train{.z = 50 + rand() % 20, .x = -distance}, // left
+        train{.z =  50 + rand() % 20, .x = 0}, // center
+        // train{.z =  50 + rand() % 20, .x = distance} // right
+    };
+
+
     
 
     void Draw3DSceneTop(void *arg)
@@ -25,7 +67,13 @@ namespace test_dual_screen {
         NE_ClearColorSet(NE_Green, 31, 63);
 
         NE_CameraUse(Scene->CameraTop);
-        NE_ModelDraw(Scene->Teapot);
+
+        for (train &t: trains) {
+            NE_ModelSetCoord(Scene->Teapot, t.x, -3, t.z);
+            NE_ModelDraw(Scene->Teapot);
+        }
+
+        // NE_ModelDraw(Scene->Teapot);
     }
 
     void Draw3DSceneBottom(void *arg)
@@ -35,7 +83,13 @@ namespace test_dual_screen {
         NE_ClearColorSet(NE_Red, 31, 63);
 
         NE_CameraUse(Scene->CameraBottom);
-        NE_ModelDraw(Scene->Teapot);
+
+        for (train &t: trains) {
+            NE_ModelSetCoord(Scene->Teapot, t.x, -3, t.z);
+            NE_ModelDraw(Scene->Teapot);
+        }
+
+        // NE_ModelDraw(Scene->Teapot);
     }
 
     void init_all(SceneData *Scene)
@@ -47,7 +101,6 @@ namespace test_dual_screen {
         Scene->CameraBottom = NE_CameraCreate();
 
         // Setup camera
-        float z_distance = -10;
         NE_CameraSet(Scene->CameraTop,
                     0, 2, z_distance,
                     0, -20, 0,
@@ -103,6 +156,16 @@ namespace test_dual_screen {
             uint32_t keys = keysHeld();
             uint32_t kdown = keysDown();
 
+            for (train &t: trains) {
+                t.z += -0.3 - speed / 4;
+
+                // respawn in the distance
+                if (t.z < cam_z - 10) {
+                    t.z = cam_z + 50 + rand() % 20;
+                }
+            }              
+
+
             // Rotate model
             if (keys & KEY_UP)
             {
@@ -124,6 +187,41 @@ namespace test_dual_screen {
                 NE_ModelRotate(Scene.Sphere, 0, -2, 0);
                 NE_ModelRotate(Scene.Teapot, 0, -2, 0);
             }
+
+            // Camera update
+            train train_in_lane = trains[0];
+            if (train_in_lane.z < cam_z + 20) {
+                target_cam_y = 2.5;
+            } else {
+                target_cam_y = -2.5;
+            }
+
+            if (current_lane == -1) {
+                target_cam_x = -distance;
+            } else if (current_lane == 0) {
+                target_cam_x = 0;
+            } else if (current_lane == 1) {
+                target_cam_x = distance;
+            }
+
+            float lerp_speed = utils::map(speed, 0.0, 3.0, 0.1, 0.6);
+            cam_y = utils::lerp(cam_y, target_cam_y, lerp_speed);
+
+            // NE_CameraSet(Scene.CameraTop,
+            //      cam_z, cam_y, cam_x,  // Position
+            //      cam_z + 10, 0, cam_x,  // Look at
+            //      0, 1, 0); // Up direction
+
+            NE_CameraSet(Scene.CameraTop,
+                0, cam_y, z_distance,
+                0, -20, 0,
+                0, 1, 0);
+
+
+            NE_CameraSet(Scene.CameraBottom,
+                0, cam_y + .5, z_distance,
+                0, 0, 0,
+                0, 1, 0);
         }
 
         return 0;
