@@ -102,13 +102,13 @@ namespace test_dual_screen {
 
         // Setup camera
         NE_CameraSet(Scene->CameraTop,
-                    0, 2, z_distance,
-                    0, -20, 0,
+                    0, 2.5, z_distance,
+                    0, 0, 0,
                     0, 1, 0);
         
         NE_CameraSet(Scene->CameraBottom,
-                    0, 2.5, z_distance,
-                    0, 0, 0,
+                    0, 2, z_distance,
+                    0, -20, 0,
                     0, 1, 0);
 
         // Load models
@@ -137,7 +137,7 @@ namespace test_dual_screen {
         irqSet(IRQ_HBLANK, NE_HBLFunc);
 
         // Init dual 3D mode and console
-        NE_InitDual3D();
+        NE_InitDual3D_FB();
         NE_InitConsole();
 
         init_all(&Scene);
@@ -146,7 +146,7 @@ namespace test_dual_screen {
 
         while (1)
         {
-            // NE_WaitForVBL();
+            NE_WaitForVBL(NE_CAN_SKIP_VBL);
 
             // Draw 3D scenes
             NE_ProcessDualArg(Draw3DSceneBottom, Draw3DSceneTop, &Scene, &Scene);
@@ -213,14 +213,14 @@ namespace test_dual_screen {
             //      0, 1, 0); // Up direction
 
             NE_CameraSet(Scene.CameraTop,
-                0, cam_y, z_distance,
-                0, -20, 0,
+                0, cam_y + .5, z_distance,
+                0, 0, 0,
                 0, 1, 0);
 
 
             NE_CameraSet(Scene.CameraBottom,
-                0, cam_y + .5, z_distance,
-                0, 0, 0,
+                0, cam_y, z_distance,
+                0, -20, 0,
                 0, 1, 0);
         }
 
