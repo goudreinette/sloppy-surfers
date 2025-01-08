@@ -124,7 +124,7 @@ namespace test_dual_screen {
 
             NE_CameraSet(scene->cameraBottom,
                 cam_x, cam_y_bottom, cam_z + cam_z_look_at_bottom_offset, // position -- FIXME
-                cam_x, -20, cam_z - z_look_at_distance + cam_z_look_at_bottom_offset, // look at
+                cam_x, -21, cam_z - z_look_at_distance + cam_z_look_at_bottom_offset, // look at
                 0, 1, 0); // up
         }
     }
@@ -136,17 +136,17 @@ namespace test_dual_screen {
 
         void update() {
             // Update ground 
-            if (ground_start_z < cameras::cam_z - 10) {
+            if (ground_start_z < cameras::cam_z - 20) {
                 ground_start_z += 10;
             }
         }
 
         void draw(SceneData* scene) {
             // draw ground
-            NE_ModelScale(scene->ground, 5, 1, 1);
+            NE_ModelScale(scene->ground, 7, 1, 1);
 
-            for (int i = 0; i <= 4; i++) {
-                NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z + i * 10);
+            for (int i = 0; i <= 5; i++) {
+                NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z + i * 13);
                 NE_ModelDraw(scene->ground);
             }
         }
