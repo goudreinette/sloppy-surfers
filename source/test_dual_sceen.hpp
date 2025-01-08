@@ -24,7 +24,7 @@ namespace test_dual_screen {
     // game
     float speed = 0.1;
     int score = 0;
-    int coins = 0; // maybe?
+    int coins_collected = 0; // maybe?
 
 
     // lanes
@@ -95,8 +95,8 @@ namespace test_dual_screen {
                 target_cam_y_bottom = 2.5;
                 target_cam_z_look_at_bottom_offset = -6;
             } else { // low camera
-                target_cam_y = -1;
-                target_cam_y_bottom = -1.75;
+                target_cam_y = 1; //-1;
+                target_cam_y_bottom = -1; //-1.75;
                 target_cam_z_look_at_bottom_offset = 0;
             }
 
@@ -122,12 +122,22 @@ namespace test_dual_screen {
                 cam_x, -3, cam_z - z_look_at_distance, // look at
                 0, 1, 0); // up
 
-            // real DS: look at Y -28
+            // real DS: look at Y -28, simulator: -21
             NE_CameraSet(scene->camera_bottom,
                 cam_x, cam_y_bottom, cam_z + cam_z_look_at_bottom_offset, // position -- FIXME
-                cam_x, -21, cam_z - z_look_at_distance + cam_z_look_at_bottom_offset, // look at
+                cam_x, -28, cam_z - z_look_at_distance + cam_z_look_at_bottom_offset, // look at
                 0, 1, 0); // up
         }
+    }
+
+
+    // coins ---------------------------
+    namespace coins {
+        struct coin {
+
+        };
+
+
     }
 
 
