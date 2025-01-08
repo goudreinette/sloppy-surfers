@@ -6,7 +6,7 @@
 #include "sphere_bin.h"
 #include "trein_bin.h"
 
-#include "mp3.h"
+#include "texture.h"
 
 
 namespace test_dual_screen {
@@ -99,7 +99,7 @@ namespace test_dual_screen {
     }
     
 
-    // DRAW the two screens -------------
+    // DRAW the two screens ----------------------------
     void Draw3DSceneTop(void *arg)
     {
         SceneData *scene = (SceneData*) arg;
@@ -134,7 +134,7 @@ namespace test_dual_screen {
     }
 
 
-    // INIT ---------------
+    // INIT ------------------------------
     void init_all(SceneData *scene)
     {
         // Allocate objects...
@@ -163,8 +163,15 @@ namespace test_dual_screen {
 
         // Material
         material = NE_MaterialCreate();
-        NE_MaterialTexLoad(material, NE_RGB5, 256, 256, NE_TEXGEN_TEXCOORD, mp3Bitmap);
-        NE_MaterialSetProperties(material,RGB15(31, 31, 31),RGB15(5,5,5),RGB15(15, 15, 15),RGB15(15, 15, 15),false, false);
+        NE_MaterialTexLoad(material, NE_RGB5, 256, 256, NE_TEXGEN_TEXCOORD, textureBitmap);
+        NE_MaterialSetProperties(material,
+            RGB15(31, 31, 31), // diffuse
+            RGB15(5,5,5), // ambient
+            RGB15(15, 15, 15), // specular
+            RGB15(15, 15, 15), // emission
+            false, // vtxcolor
+            false // useshininess
+        );
 
         NE_ModelSetMaterial(scene->train, material);
         NE_ModelSetMaterial(scene->track, material);
@@ -176,7 +183,7 @@ namespace test_dual_screen {
 
 
 
-    // UPDATE logic ---------------------
+    // UPDATE logic ------------------------------------
     void update_ground()
     {
         // Update ground 
@@ -248,7 +255,7 @@ namespace test_dual_screen {
 
 
 
-    // MAIN ----------------------------
+    // MAIN -------------------------------------------
     int main()
     {
         SceneData scene = { 0 };
@@ -268,6 +275,7 @@ namespace test_dual_screen {
 
         while (1)
         {
+            // Move forward
             cam_z += speed;
 
             NE_WaitForVBL(NE_CAN_SKIP_VBL);
@@ -279,8 +287,6 @@ namespace test_dual_screen {
             scanKeys();
             uint32_t keys = keysHeld();
             uint32_t kdown = keysDown();
-
-
 
             // Speed and lane switching
             if (keys & KEY_UP) {

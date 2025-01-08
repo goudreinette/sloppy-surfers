@@ -12,6 +12,7 @@
 #include "heart.h"
 #include "rainbow.h"
 #include "texture3.h"
+#include "texture.h"
 #include "paper.h"
 #include "sloppy_bin.h"
 
@@ -90,7 +91,7 @@ void draw_3d_scene(void *arg) {
 
 void load_mp3_material() {
     material_mp3 = NE_MaterialCreate();
-    NE_MaterialTexLoad(material_mp3, NE_RGB5, 256, 256, NE_TEXGEN_TEXCOORD, mp3Bitmap);
+    NE_MaterialTexLoad(material_mp3, NE_RGB5, 256, 256, NE_TEXGEN_TEXCOORD, textureBitmap);
     NE_MaterialSetProperties(material_mp3,RGB15(31, 31, 31),RGB15(5,5,5),RGB15(15, 15, 15),RGB15(15, 15, 15),false, false);
 }
 
