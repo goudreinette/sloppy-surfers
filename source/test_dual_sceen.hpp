@@ -25,7 +25,7 @@ namespace test_dual_screen {
 
 
     // lanes
-    int distance = 6;
+    int lane_gap = 2;
     int current_lane = 0;
 
 
@@ -38,9 +38,9 @@ namespace test_dual_screen {
         };
         
         train trains[] = {
-            // train{.z = 50 + rand() % 20, .x = -distance}, // left
+            // train{.z = 50 + rand() % 20, .x = -lane_gap}, // left
             train{.z =  50 + rand() % 20, .x = 0}, // center
-            // train{.z =  50 + rand() % 20, .x = distance} // right
+            // train{.z =  50 + rand() % 20, .x = lane_gap} // right
         };
 
         void update(int cam_z) {
@@ -84,21 +84,21 @@ namespace test_dual_screen {
         void update(SceneData* scene) {
             // Jump up for trains 
             trains::train train_in_lane = trains::trains[current_lane];
-            if (train_in_lane.z < cam_z + 20) {
+            if (train_in_lane.z < cam_z + 20) { // high camera
                 target_cam_y = 7;
-                target_cam_y_bottom = 2.5;
-            } else {
-                target_cam_y = -2;
-                target_cam_y_bottom = -1.9;
+                target_cam_y_bottom = 3;
+            } else { // low camera
+                target_cam_y = -1;
+                target_cam_y_bottom = -1.5;
             }
 
             // Camera in lane
             if (current_lane == -1) {
-                target_cam_x = -distance;
+                target_cam_x = -lane_gap;
             } else if (current_lane == 0) {
                 target_cam_x = 0;
             } else if (current_lane == 1) {
-                target_cam_x = distance;
+                target_cam_x = lane_gap;
             }
 
             // Lerp camera
@@ -110,12 +110,12 @@ namespace test_dual_screen {
 
             NE_CameraSet(scene->cameraTop,
                 cam_x, cam_y, cam_z, // position
-                cam_x, 0, cam_z - z_look_at_distance, // look at
+                cam_x, -3, cam_z - z_look_at_distance, // look at
                 0, 1, 0); // up
 
             NE_CameraSet(scene->cameraBottom,
-                cam_x, cam_y_bottom, cam_z - 2, // position
-                cam_x, -25, cam_z - z_look_at_distance - 2, // look at
+                cam_x, cam_y_bottom, cam_z - 4, // position
+                cam_x, -25, cam_z - z_look_at_distance - 4, // look at
                 0, 1, 0); // up
         }
     }
@@ -162,7 +162,7 @@ namespace test_dual_screen {
             // draw tracks
             for (int track_i = 0; track_i < num_track_parts; ++track_i) {
                 for (int lane = -1; lane <= 1; ++lane) {
-                    NE_ModelSetCoord(scene->track, lane * distance - .200, track_height, track_start_z + track_i * track_gap);
+                    NE_ModelSetCoord(scene->track, lane * lane_gap - .200, track_height, track_start_z + track_i * track_gap);
                     // NE_ModelRotate(scene->track, 0, 90, 0);
                     NE_ModelSetRot(scene->track, 0, 128, 0);
                     NE_ModelDraw(scene->track);
