@@ -75,16 +75,16 @@ python3 $OBJ2DL \
 #     grit $background -ftb -fh! -gb -gB16
 # done
 
-for background in assets/backgrounds/*.png; do
-    grit $background -ftb -fh! -gT000000 -gt -gB8 -mR8 -mLs
-done
+# for background in assets/backgrounds/*.png; do
+#     grit $background -ftb -fh! -gT000000 -gt -gB8 -mR8 -mLs
+# done
 
-#for sprite in assets/sprites/*.png; do
-#    grit $sprite -ftb -fh! -gT000000 -gt -gB8 -m!
-#done
+# #for sprite in assets/sprites/*.png; do
+# #    grit $sprite -ftb -fh! -gT000000 -gt -gB8 -m!
+# #done
 
-for file in *.bin; do
-    mv -- "$file" "${file%.bin}"
-done
+# for file in *.bin; do
+#     mv -- "$file" "${file%.bin}"
+# done
 
-mv *.pal *.map *.img ./nitrofiles/
+# mv *.pal *.map *.img ./nitrofiles/

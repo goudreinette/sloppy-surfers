@@ -9,7 +9,7 @@
 #include "texture.h"
 
 
-#define SKY_COLOR RGB15(20, 26, 31)
+#define SKY_COLOR RGB15(18, 28, 31)
 
 
 namespace test_dual_screen {
@@ -122,6 +122,7 @@ namespace test_dual_screen {
                 cam_x, -3, cam_z - z_look_at_distance, // look at
                 0, 1, 0); // up
 
+            // real DS: look at Y -28
             NE_CameraSet(scene->cameraBottom,
                 cam_x, cam_y_bottom, cam_z + cam_z_look_at_bottom_offset, // position -- FIXME
                 cam_x, -21, cam_z - z_look_at_distance + cam_z_look_at_bottom_offset, // look at
@@ -185,7 +186,7 @@ namespace test_dual_screen {
     void Draw3DSceneTop(void *arg) {
         SceneData *scene = (SceneData*) arg;
 
-        NE_ClearColorSet(RGB15(20, 26, 31), 31, 63);
+        NE_ClearColorSet(SKY_COLOR, 31, 63);
 
         NE_PolyFormat(31, 1, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
 
@@ -200,7 +201,7 @@ namespace test_dual_screen {
     void Draw3DSceneBottom(void *arg) {
         SceneData *scene = (SceneData*) arg;
 
-        NE_ClearColorSet(RGB15(20, 26, 31), 31, 63);
+        NE_ClearColorSet(SKY_COLOR, 31, 63);
 
         NE_PolyFormat(31, 1, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
 
@@ -247,13 +248,12 @@ namespace test_dual_screen {
         // Set light color and direction
         NE_LightSet(0, NE_White, -0.5, -0.5, -0.5);
 
-
+        // Enable fog
         u16 depth = 0x7EA0;
         u8 shift = 5;
         u8 mass = 2;
         u32 color = SKY_COLOR;
 
-        // Enable/update fog
         NE_FogEnable(shift, color, 31, mass, depth);
     }
 
