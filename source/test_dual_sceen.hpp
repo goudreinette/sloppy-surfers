@@ -133,7 +133,7 @@ namespace test_dual_screen {
 
     // ground ---------------------------
     namespace ground {
-        int ground_start_z = 0;
+        int ground_start_z = -10;
 
         void update() {
             // Update ground 
@@ -159,7 +159,7 @@ namespace test_dual_screen {
         float track_height = -3;
         const int num_track_parts = 7;
         int track_gap = 7;
-        int track_start_z = 0;
+        int track_start_z = -10;
 
         void update() {
             if (track_start_z < cameras::cam_z - 10) {
