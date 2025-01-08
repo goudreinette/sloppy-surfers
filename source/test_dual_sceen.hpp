@@ -84,12 +84,12 @@ namespace test_dual_screen {
         void update(SceneData* scene) {
             // Jump up for trains 
             trains::train train_in_lane = trains::trains[current_lane];
-            if (train_in_lane.z < cam_z + 20) { // high camera
+            if (train_in_lane.z && (train_in_lane.z < cam_z + 20)) { // high camera
                 target_cam_y = 7;
-                target_cam_y_bottom = 3;
+                target_cam_y_bottom = 2.5;
             } else { // low camera
                 target_cam_y = -1;
-                target_cam_y_bottom = -1.5;
+                target_cam_y_bottom = -1.75;
             }
 
             // Camera in lane
@@ -114,8 +114,8 @@ namespace test_dual_screen {
                 0, 1, 0); // up
 
             NE_CameraSet(scene->cameraBottom,
-                cam_x, cam_y_bottom, cam_z - 4, // position
-                cam_x, -25, cam_z - z_look_at_distance - 4, // look at
+                cam_x, cam_y_bottom, cam_z - 4, // position -- FIXME
+                cam_x, -20, cam_z - z_look_at_distance - 4, // look at
                 0, 1, 0); // up
         }
     }
