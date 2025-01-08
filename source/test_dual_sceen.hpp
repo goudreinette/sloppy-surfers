@@ -63,8 +63,7 @@ namespace test_dual_screen {
 
 
     // DRAW objects -------------
-    void draw_ground(SceneData* scene)
-    {
+    void draw_ground(SceneData* scene) {
         // draw ground
         NE_ModelScale(scene->ground, 5, 5, 10);
         NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z + 130);
@@ -76,8 +75,7 @@ namespace test_dual_screen {
     }
 
     
-    void draw_tracks(SceneData* scene) 
-    {
+    void draw_tracks(SceneData* scene) {
         // draw tracks
         for (int track_i = 0; track_i < num_track_parts; ++track_i) {
             for (int lane = -1; lane <= 1; ++lane) {
@@ -89,8 +87,7 @@ namespace test_dual_screen {
         }
     }
 
-    void draw_trains(SceneData* scene) 
-    {
+    void draw_trains(SceneData* scene)  {
         // draw train
         for (train &t: trains) {
             NE_ModelSetCoord(scene->train, t.x, -3, t.z);
@@ -100,15 +97,13 @@ namespace test_dual_screen {
     
 
     // DRAW the two screens ----------------------------
-    void Draw3DSceneTop(void *arg)
-    {
+    void Draw3DSceneTop(void *arg) {
         SceneData *scene = (SceneData*) arg;
 
         // NE_ClearColorSet(NE_Green, 31, 63);
 
         NE_PolyFormat(31, 1, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
-
-
+        
         NE_CameraUse(scene->cameraTop);
 
         // Draw ground, tracks and trains
@@ -117,8 +112,7 @@ namespace test_dual_screen {
         draw_trains(scene);
     }
 
-    void Draw3DSceneBottom(void *arg)
-    {
+    void Draw3DSceneBottom(void *arg) {
         SceneData *scene = (SceneData*) arg;
 
         // NE_ClearColorSet(NE_Red, 31, 63);
@@ -135,8 +129,7 @@ namespace test_dual_screen {
 
 
     // INIT ------------------------------
-    void init_all(SceneData *scene)
-    {
+    void init_all(SceneData *scene) {
         // Allocate objects...
         scene->train = NE_ModelCreate(NE_Static);
         scene->track = NE_ModelCreate(NE_Static);
@@ -145,28 +138,17 @@ namespace test_dual_screen {
         scene->cameraTop = NE_CameraCreate();
         scene->cameraBottom = NE_CameraCreate();
 
-        // Setup camera
-        NE_CameraSet(scene->cameraTop,
-                    0, 2.5, z_distance,
-                    0, 0, 0,
-                    0, 1, 0);
-        
-        NE_CameraSet(scene->cameraBottom,
-                    0, 2, z_distance,
-                    0, -20, 0,
-                    0, 1, 0);
-
         // Load models
         NE_ModelLoadStaticMesh(scene->train, trein_bin);
         NE_ModelLoadStaticMesh(scene->track, track_bin);
         NE_ModelLoadStaticMesh(scene->ground, ground_bin);
 
-        // Material
+        // Create and set shared material
         material = NE_MaterialCreate();
         NE_MaterialTexLoad(material, NE_RGB5, 256, 256, NE_TEXGEN_TEXCOORD, textureBitmap);
         NE_MaterialSetProperties(material,
             RGB15(31, 31, 31), // diffuse
-            RGB15(5,5,5), // ambient
+            RGB15(5, 5, 5), // ambient
             RGB15(15, 15, 15), // specular
             RGB15(15, 15, 15), // emission
             false, // vtxcolor
@@ -184,8 +166,7 @@ namespace test_dual_screen {
 
 
     // UPDATE logic ------------------------------------
-    void update_ground()
-    {
+    void update_ground() {
         // Update ground 
         if (ground_start_z < cam_z - 66) {
             ground_start_z += 66;
@@ -193,16 +174,14 @@ namespace test_dual_screen {
     }
 
 
-    void update_tracks()
-    {
+    void update_tracks() {
         int cam_z_int = (int) cam_z;
         if (track_start_z < cam_z - 10) {
             track_start_z += 7;
         }
     }
 
-    void update_trains()
-    {
+    void update_trains() {
         for (train &t: trains) {
             t.z += -0.3 - speed / 4;
 
@@ -214,8 +193,7 @@ namespace test_dual_screen {
     }
 
 
-    void update_camera(SceneData* scene) 
-    {
+    void update_camera(SceneData* scene) {
         // Jump up for trains 
         train train_in_lane = trains[current_lane];
         if (train_in_lane.z < cam_z + 20) {
@@ -243,21 +221,20 @@ namespace test_dual_screen {
 
 
         NE_CameraSet(scene->cameraTop,
-            cam_x, cam_y, cam_z,
-            cam_x, 0, cam_z - z_distance,
-            0, 1, 0);
+            cam_x, cam_y, cam_z, // position
+            cam_x, 0, cam_z - z_distance, // look at
+            0, 1, 0); // up
 
         NE_CameraSet(scene->cameraBottom,
-            cam_x, cam_y_bottom, cam_z - 2,
-            cam_x, -25, cam_z - z_distance - 2,
-            0, 1, 0);
+            cam_x, cam_y_bottom, cam_z - 2, // position
+            cam_x, -25, cam_z - z_distance - 2, // look at
+            0, 1, 0); // up
     }
 
 
 
     // MAIN -------------------------------------------
-    int main()
-    {
+    int main() {
         SceneData scene = { 0 };
 
         // This is needed for special screen effects
@@ -273,8 +250,8 @@ namespace test_dual_screen {
 
         bool console = true;
 
-        while (1)
-        {
+
+        while (1) {
             // Move forward
             cam_z += speed;
 
@@ -303,6 +280,11 @@ namespace test_dual_screen {
                 // NE_ModelRotate(scene.train, 0, -2, 0);
                 if (current_lane >= 0) current_lane--;
             }
+
+            update_ground();
+            update_tracks();
+            update_trains();
+            update_camera(&scene);
         }
 
         return 0;
