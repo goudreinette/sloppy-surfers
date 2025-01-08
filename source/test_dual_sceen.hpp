@@ -43,7 +43,7 @@ namespace test_dual_screen {
             // train{.z =  50 + rand() % 20, .x = distance} // right
         };
 
-        void update() {
+        void update(int cam_z) {
             for (train &t: trains) {
                 t.z += -0.3 - speed / 4;
 
@@ -294,7 +294,7 @@ namespace test_dual_screen {
 
             ground::update();
             tracks::update();
-            trains::update();
+            trains::update(cameras::cam_z);
             cameras::update(&scene);
         }
 
