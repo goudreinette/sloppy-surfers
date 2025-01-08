@@ -13,7 +13,10 @@
         "tuple": "cpp",
         "variant": "cpp",
         "math.h": "c",
-        "filesystem.h": "c"
+        "filesystem.h": "c",
+        "algorithm": "cpp",
+        "iterator": "cpp",
+        "memory": "cpp"
     },
     "terminal.integrated.defaultProfile.windows": "MSYS2",
     "terminal.integrated.profiles.windows": {

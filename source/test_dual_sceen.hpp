@@ -18,82 +18,159 @@ namespace test_dual_screen {
     } SceneData;
 
 
-    // camera
-    float cam_y = 0.0;
-    float cam_y_bottom = 0.0;
-    float cam_z = -10.0;
-    float cam_x = 0.0;
-
-    float target_cam_y = cam_y;
-    float target_cam_y_bottom = cam_y;
-
-    float target_cam_x = cam_x;
-    float target_cam_z = cam_z;
-    
-    // speed
+    // game
     float speed = 0.1;
+    int score = 0;
+    int coins = 0; // maybe?
 
-    // tracks
-    float track_height = -3;
-    const int num_track_parts = 7;
-    int track_gap = 7;
-    int track_start_z = 0;
-
-    // ground
-    int ground_start_z = 0;
 
     // lanes
     int distance = 6;
     int current_lane = 0;
 
-    float z_distance = -10;
 
+    // trains
+    namespace trains {
+        struct train {
+            float z = 20;
+            float scale = 2;
+            float x;
+        };
+        
+        train trains[] = {
+            // train{.z = 50 + rand() % 20, .x = -distance}, // left
+            train{.z =  50 + rand() % 20, .x = 0}, // center
+            // train{.z =  50 + rand() % 20, .x = distance} // right
+        };
 
-    struct train {
-        float z = 20;
-        float scale = 2;
-        float x;
-    };
+        void update() {
+            for (train &t: trains) {
+                t.z += -0.3 - speed / 4;
 
-    train trains[] = {
-        // train{.z = 50 + rand() % 20, .x = -distance}, // left
-        train{.z =  50 + rand() % 20, .x = 0}, // center
-        // train{.z =  50 + rand() % 20, .x = distance} // right
-    };
-
-
-    // DRAW objects -------------
-    void draw_ground(SceneData* scene) {
-        // draw ground
-        NE_ModelScale(scene->ground, 5, 5, 10);
-        NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z + 130);
-        NE_ModelDraw(scene->ground);
-        NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z);
-        NE_ModelDraw(scene->ground);
-        NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z + 66);
-        NE_ModelDraw(scene->ground);
-    }
-
-    
-    void draw_tracks(SceneData* scene) {
-        // draw tracks
-        for (int track_i = 0; track_i < num_track_parts; ++track_i) {
-            for (int lane = -1; lane <= 1; ++lane) {
-                NE_ModelSetCoord(scene->track, lane * distance - .200, track_height, track_start_z + track_i * track_gap);
-                // NE_ModelRotate(scene->track, 0, 90, 0);
-                NE_ModelSetRot(scene->track, 0, 128, 0);
-                NE_ModelDraw(scene->track);
+                // respawn in the distance
+                if (t.z < cam_z - 10) {
+                    t.z = cam_z + 50 + rand() % 20;
+                }
+            }     
+        }
+        
+        void draw(SceneData* scene)  {
+            // draw train
+            for (train &t: trains) {
+                NE_ModelSetCoord(scene->train, t.x, -3, t.z);
+                NE_ModelDraw(scene->train);
             }
         }
     }
 
-    void draw_trains(SceneData* scene)  {
-        // draw train
-        for (train &t: trains) {
-            NE_ModelSetCoord(scene->train, t.x, -3, t.z);
-            NE_ModelDraw(scene->train);
+
+
+    // camera ---------------------------
+    namespace cameras {
+        float cam_y = 0.0;
+        float cam_y_bottom = 0.0;
+        float cam_z = -10.0;
+        float cam_x = 0.0;
+
+        float target_cam_y = cam_y;
+        float target_cam_y_bottom = cam_y;
+
+        float target_cam_x = cam_x;
+        float target_cam_z = cam_z;
+
+        float z_look_at_distance = -10;
+
+
+        void update(SceneData* scene) {
+            // Jump up for trains 
+            trains::train train_in_lane = trains::trains[current_lane];
+            if (train_in_lane.z < cam_z + 20) {
+                target_cam_y = 7;
+                target_cam_y_bottom = 2.5;
+            } else {
+                target_cam_y = -2;
+                target_cam_y_bottom = -1.9;
+            }
+
+            // Camera in lane
+            if (current_lane == -1) {
+                target_cam_x = -distance;
+            } else if (current_lane == 0) {
+                target_cam_x = 0;
+            } else if (current_lane == 1) {
+                target_cam_x = distance;
+            }
+
+            // Lerp camera
+            float lerp_speed = utils::map(speed, 0.0, 3.0, 0.1, 0.6);
+            cam_x = utils::lerp(cam_x, target_cam_x, lerp_speed);
+            cam_y = utils::lerp(cam_y, target_cam_y, lerp_speed);
+            cam_y_bottom = utils::lerp(cam_y_bottom, target_cam_y_bottom, lerp_speed);
+
+
+            NE_CameraSet(scene->cameraTop,
+                cam_x, cam_y, cam_z, // position
+                cam_x, 0, cam_z - z_look_at_distance, // look at
+                0, 1, 0); // up
+
+            NE_CameraSet(scene->cameraBottom,
+                cam_x, cam_y_bottom, cam_z - 2, // position
+                cam_x, -25, cam_z - z_look_at_distance - 2, // look at
+                0, 1, 0); // up
         }
     }
+
+    // ground ---------------------------
+    namespace ground {
+        int ground_start_z = 0;
+
+        void update() {
+            // Update ground 
+            if (ground_start_z < cameras::cam_z - 66) {
+                ground_start_z += 66;
+            }
+        }
+
+        void draw(SceneData* scene) {
+            // draw ground
+            NE_ModelScale(scene->ground, 5, 5, 10);
+            NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z + 130);
+            NE_ModelDraw(scene->ground);
+            NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z);
+            NE_ModelDraw(scene->ground);
+            NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z + 66);
+            NE_ModelDraw(scene->ground);
+        }
+    }
+
+
+    // tracks  ---------------------------
+    namespace tracks {
+        float track_height = -3;
+        const int num_track_parts = 7;
+        int track_gap = 7;
+        int track_start_z = 0;
+
+        void update() {
+            if (track_start_z < cameras::cam_z - 10) {
+                track_start_z += 7;
+            }
+        }
+
+        void draw(SceneData* scene) {
+            // draw tracks
+            for (int track_i = 0; track_i < num_track_parts; ++track_i) {
+                for (int lane = -1; lane <= 1; ++lane) {
+                    NE_ModelSetCoord(scene->track, lane * distance - .200, track_height, track_start_z + track_i * track_gap);
+                    // NE_ModelRotate(scene->track, 0, 90, 0);
+                    NE_ModelSetRot(scene->track, 0, 128, 0);
+                    NE_ModelDraw(scene->track);
+                }
+            }
+        }
+    }
+
+    
     
 
     // DRAW the two screens ----------------------------
@@ -103,13 +180,13 @@ namespace test_dual_screen {
         // NE_ClearColorSet(NE_Green, 31, 63);
 
         NE_PolyFormat(31, 1, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
-        
+
         NE_CameraUse(scene->cameraTop);
 
         // Draw ground, tracks and trains
-        draw_ground(scene);        
-        draw_tracks(scene);
-        draw_trains(scene);
+        ground::draw(scene);        
+        tracks::draw(scene);
+        trains::draw(scene);
     }
 
     void Draw3DSceneBottom(void *arg) {
@@ -122,13 +199,13 @@ namespace test_dual_screen {
         NE_CameraUse(scene->cameraBottom);
 
         // Draw ground, tracks and trains
-        draw_ground(scene);
-        draw_tracks(scene);
-        draw_trains(scene);
+        ground::draw(scene);
+        tracks::draw(scene);
+        trains::draw(scene);
     }
 
 
-    // INIT ------------------------------
+    // INIT graphics objects ------------------------------
     void init_all(SceneData *scene) {
         // Allocate objects...
         scene->train = NE_ModelCreate(NE_Static);
@@ -165,73 +242,6 @@ namespace test_dual_screen {
 
 
 
-    // UPDATE logic ------------------------------------
-    void update_ground() {
-        // Update ground 
-        if (ground_start_z < cam_z - 66) {
-            ground_start_z += 66;
-        }
-    }
-
-
-    void update_tracks() {
-        int cam_z_int = (int) cam_z;
-        if (track_start_z < cam_z - 10) {
-            track_start_z += 7;
-        }
-    }
-
-    void update_trains() {
-        for (train &t: trains) {
-            t.z += -0.3 - speed / 4;
-
-            // respawn in the distance
-            if (t.z < cam_z - 10) {
-                t.z = cam_z + 50 + rand() % 20;
-            }
-        }     
-    }
-
-
-    void update_camera(SceneData* scene) {
-        // Jump up for trains 
-        train train_in_lane = trains[current_lane];
-        if (train_in_lane.z < cam_z + 20) {
-            target_cam_y = 7;
-            target_cam_y_bottom = 2.5;
-        } else {
-            target_cam_y = -2;
-            target_cam_y_bottom = -1.9;
-        }
-
-        // Camera in lane
-        if (current_lane == -1) {
-            target_cam_x = -distance;
-        } else if (current_lane == 0) {
-            target_cam_x = 0;
-        } else if (current_lane == 1) {
-            target_cam_x = distance;
-        }
-
-        // Lerp camera
-        float lerp_speed = utils::map(speed, 0.0, 3.0, 0.1, 0.6);
-        cam_x = utils::lerp(cam_x, target_cam_x, lerp_speed);
-        cam_y = utils::lerp(cam_y, target_cam_y, lerp_speed);
-        cam_y_bottom = utils::lerp(cam_y_bottom, target_cam_y_bottom, lerp_speed);
-
-
-        NE_CameraSet(scene->cameraTop,
-            cam_x, cam_y, cam_z, // position
-            cam_x, 0, cam_z - z_distance, // look at
-            0, 1, 0); // up
-
-        NE_CameraSet(scene->cameraBottom,
-            cam_x, cam_y_bottom, cam_z - 2, // position
-            cam_x, -25, cam_z - z_distance - 2, // look at
-            0, 1, 0); // up
-    }
-
-
 
     // MAIN -------------------------------------------
     int main() {
@@ -253,7 +263,7 @@ namespace test_dual_screen {
 
         while (1) {
             // Move forward
-            cam_z += speed;
+            cameras::cam_z += speed;
 
             NE_WaitForVBL(NE_CAN_SKIP_VBL);
 
@@ -281,10 +291,10 @@ namespace test_dual_screen {
                 if (current_lane >= 0) current_lane--;
             }
 
-            update_ground();
-            update_tracks();
-            update_trains();
-            update_camera(&scene);
+            ground::update();
+            tracks::update();
+            trains::update();
+            cameras::update(&scene);
         }
 
         return 0;
