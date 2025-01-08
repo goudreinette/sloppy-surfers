@@ -246,6 +246,15 @@ namespace test_dual_screen {
 
         // Set light color and direction
         NE_LightSet(0, NE_White, -0.5, -0.5, -0.5);
+
+
+        u16 depth = 0x7EA0;
+        u8 shift = 5;
+        u8 mass = 2;
+        u32 color = SKY_COLOR;
+
+        // Enable/update fog
+        NE_FogEnable(shift, color, 31, mass, depth);
     }
 
 
