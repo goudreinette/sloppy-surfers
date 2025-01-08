@@ -16,7 +16,7 @@ namespace test_dual_screen {
     NE_Material *material;
     
     struct SceneData {
-        NE_Camera *cameraTop, *cameraBottom;
+        NE_Camera *camera_top, *camera_bottom;
         NE_Model *train, *track, *ground;
     };
 
@@ -117,13 +117,13 @@ namespace test_dual_screen {
             cam_z_look_at_bottom_offset = utils::lerp(cam_z_look_at_bottom_offset, target_cam_z_look_at_bottom_offset, lerp_speed);
 
 
-            NE_CameraSet(scene->cameraTop,
+            NE_CameraSet(scene->camera_top,
                 cam_x, cam_y, cam_z, // position
                 cam_x, -3, cam_z - z_look_at_distance, // look at
                 0, 1, 0); // up
 
             // real DS: look at Y -28
-            NE_CameraSet(scene->cameraBottom,
+            NE_CameraSet(scene->camera_bottom,
                 cam_x, cam_y_bottom, cam_z + cam_z_look_at_bottom_offset, // position -- FIXME
                 cam_x, -21, cam_z - z_look_at_distance + cam_z_look_at_bottom_offset, // look at
                 0, 1, 0); // up
@@ -183,14 +183,14 @@ namespace test_dual_screen {
     
 
     // DRAW the two screens ----------------------------
-    void Draw3DSceneTop(void *arg) {
+    void draw_3d_scene_top(void *arg) {
         SceneData *scene = (SceneData*) arg;
 
         NE_ClearColorSet(SKY_COLOR, 31, 63);
 
         NE_PolyFormat(31, 1, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
 
-        NE_CameraUse(scene->cameraTop);
+        NE_CameraUse(scene->camera_top);
 
         // Draw ground, tracks and trains
         ground::draw(scene);        
@@ -198,14 +198,14 @@ namespace test_dual_screen {
         trains::draw(scene);
     }
 
-    void Draw3DSceneBottom(void *arg) {
+    void draw_3d_scene_bottom(void *arg) {
         SceneData *scene = (SceneData*) arg;
 
         NE_ClearColorSet(SKY_COLOR, 31, 63);
 
         NE_PolyFormat(31, 1, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
 
-        NE_CameraUse(scene->cameraBottom);
+        NE_CameraUse(scene->camera_bottom);
 
         // Draw ground, tracks and trains
         ground::draw(scene);
@@ -221,8 +221,8 @@ namespace test_dual_screen {
         scene->track = NE_ModelCreate(NE_Static);
         scene->ground = NE_ModelCreate(NE_Static);
 
-        scene->cameraTop = NE_CameraCreate();
-        scene->cameraBottom = NE_CameraCreate();
+        scene->camera_top = NE_CameraCreate();
+        scene->camera_bottom = NE_CameraCreate();
 
         // Load models
         NE_ModelLoadStaticMesh(scene->train, trein_bin);
@@ -285,7 +285,7 @@ namespace test_dual_screen {
             NE_WaitForVBL(NE_CAN_SKIP_VBL);
 
             // Draw 3D scenes
-            NE_ProcessDualArg(Draw3DSceneBottom, Draw3DSceneTop, &scene, &scene);
+            NE_ProcessDualArg(draw_3d_scene_bottom, draw_3d_scene_top, &scene, &scene);
 
             // Refresh keys
             scanKeys();
