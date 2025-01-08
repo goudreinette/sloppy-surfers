@@ -9,6 +9,9 @@
 #include "texture.h"
 
 
+#define SKY_COLOR RGB15(20, 26, 31)
+
+
 namespace test_dual_screen {
     NE_Material *material;
     
@@ -67,16 +70,19 @@ namespace test_dual_screen {
 
     // camera ---------------------------
     namespace cameras {
+        float cam_x = 0.0;
         float cam_y = 0.0;
         float cam_y_bottom = 0.0;
         float cam_z = -10.0;
-        float cam_x = 0.0;
+        float cam_z_look_at_bottom_offset = -6;
 
+        float target_cam_x = cam_x;
         float target_cam_y = cam_y;
         float target_cam_y_bottom = cam_y;
 
-        float target_cam_x = cam_x;
         float target_cam_z = cam_z;
+        float target_cam_z_look_at_bottom_offset = cam_z_look_at_bottom_offset;
+        
 
         float z_look_at_distance = -10;
 
@@ -87,9 +93,11 @@ namespace test_dual_screen {
             if (train_in_lane.z && (train_in_lane.z < cam_z + 20)) { // high camera
                 target_cam_y = 7;
                 target_cam_y_bottom = 2.5;
+                target_cam_z_look_at_bottom_offset = -6;
             } else { // low camera
                 target_cam_y = -1;
                 target_cam_y_bottom = -1.75;
+                target_cam_z_look_at_bottom_offset = 0;
             }
 
             // Camera in lane
@@ -102,10 +110,11 @@ namespace test_dual_screen {
             }
 
             // Lerp camera
-            float lerp_speed = utils::map(speed, 0.0, 3.0, 0.1, 0.6);
+            float lerp_speed = utils::map(speed, 0.0, 3.0, 0.1, 0.6); // camera moves faster when speed increases
             cam_x = utils::lerp(cam_x, target_cam_x, lerp_speed);
             cam_y = utils::lerp(cam_y, target_cam_y, lerp_speed);
             cam_y_bottom = utils::lerp(cam_y_bottom, target_cam_y_bottom, lerp_speed);
+            cam_z_look_at_bottom_offset = utils::lerp(cam_z_look_at_bottom_offset, target_cam_z_look_at_bottom_offset, lerp_speed);
 
 
             NE_CameraSet(scene->cameraTop,
@@ -114,8 +123,8 @@ namespace test_dual_screen {
                 0, 1, 0); // up
 
             NE_CameraSet(scene->cameraBottom,
-                cam_x, cam_y_bottom, cam_z - 4, // position -- FIXME
-                cam_x, -20, cam_z - z_look_at_distance - 4, // look at
+                cam_x, cam_y_bottom, cam_z + cam_z_look_at_bottom_offset, // position -- FIXME
+                cam_x, -20, cam_z - z_look_at_distance + cam_z_look_at_bottom_offset, // look at
                 0, 1, 0); // up
         }
     }
@@ -127,20 +136,19 @@ namespace test_dual_screen {
 
         void update() {
             // Update ground 
-            if (ground_start_z < cameras::cam_z - 66) {
-                ground_start_z += 66;
+            if (ground_start_z < cameras::cam_z - 10) {
+                ground_start_z += 10;
             }
         }
 
         void draw(SceneData* scene) {
             // draw ground
-            NE_ModelScale(scene->ground, 5, 5, 10);
-            NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z + 130);
-            NE_ModelDraw(scene->ground);
-            NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z);
-            NE_ModelDraw(scene->ground);
-            NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z + 66);
-            NE_ModelDraw(scene->ground);
+            NE_ModelScale(scene->ground, 5, 1, 1);
+
+            for (int i = 0; i <= 4; i++) {
+                NE_ModelSetCoord(scene->ground, 0, -3.1, ground_start_z + i * 10);
+                NE_ModelDraw(scene->ground);
+            }
         }
     }
 
@@ -172,13 +180,12 @@ namespace test_dual_screen {
     }
 
     
-    
 
     // DRAW the two screens ----------------------------
     void Draw3DSceneTop(void *arg) {
         SceneData *scene = (SceneData*) arg;
 
-        // NE_ClearColorSet(NE_Green, 31, 63);
+        NE_ClearColorSet(RGB15(20, 26, 31), 31, 63);
 
         NE_PolyFormat(31, 1, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
 
@@ -193,7 +200,7 @@ namespace test_dual_screen {
     void Draw3DSceneBottom(void *arg) {
         SceneData *scene = (SceneData*) arg;
 
-        // NE_ClearColorSet(NE_Red, 31, 63);
+        NE_ClearColorSet(RGB15(20, 26, 31), 31, 63);
 
         NE_PolyFormat(31, 1, NE_LIGHT_0, NE_CULL_BACK, NE_FOG_ENABLE);
 
