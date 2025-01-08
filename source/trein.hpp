@@ -70,6 +70,7 @@ namespace trein {
         NE_ModelScale(scene->trein, 2, 2, 2);
         NE_ModelSetRot(scene->trein, 0, 130, 0);
 
+        // draw ground
         NE_ModelScale(scene->ground, 5, 5, 10);
         NE_ModelSetCoord(scene->ground, ground_start_z, -3.1, 0);
         NE_ModelDraw(scene->ground);
