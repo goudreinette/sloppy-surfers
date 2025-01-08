@@ -12,10 +12,10 @@
 namespace test_dual_screen {
     NE_Material *material;
     
-    typedef struct {
+    struct SceneData {
         NE_Camera *cameraTop, *cameraBottom;
         NE_Model *train, *track, *ground;
-    } SceneData;
+    };
 
 
     // game
@@ -119,6 +119,7 @@ namespace test_dual_screen {
                 0, 1, 0); // up
         }
     }
+
 
     // ground ---------------------------
     namespace ground {
