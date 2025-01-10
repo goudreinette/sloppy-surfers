@@ -200,6 +200,10 @@ namespace test_dual_screen {
         float coin_count_rotation = 0;
         float coin_count_rotation_target = 0;
 
+        float coin_count_scale = 0.4;
+        float coin_count_scale_target = 0.4;
+
+
         void update() {
             if (frame % 45 == 0) {
                 coin new_coin = coin();
@@ -213,7 +217,8 @@ namespace test_dual_screen {
             coin_count_x = cameras::cam_x + 1;
             coin_count_y = cameras::cam_y_bottom - 1.5;
             coin_count_z = cameras::cam_z + cameras::cam_z_look_at_bottom_offset - .15;
-            coin_count_rotation = utils::lerp(coin_count_rotation, coin_count_rotation_target, 0.2);
+            // coin_count_rotation = utils::lerp(coin_count_rotation, coin_count_rotation_target, 0.3);
+            coin_count_scale = utils::lerp(coin_count_scale, coin_count_scale_target, 0.2);
 
             for (int i = 0; i < coins.size(); i++) {
                 coin *c = &coins.at(i);
@@ -223,7 +228,8 @@ namespace test_dual_screen {
 
                 if ((abs(c->x - player::x) + abs(c->z - player::z)) < 1 && !c->is_collecting) {
                     c->is_collecting = true;
-                    coin_count_rotation_target = 480;
+                    // coin_count_rotation_target = 800;
+                    coin_count_scale = .8;
                 }
 
                 if (c->is_collecting) {
@@ -232,9 +238,12 @@ namespace test_dual_screen {
                     c->z = utils::lerp(c->z, coin_count_z, 0.05);
                     c->scale = utils::lerp(c->scale, 0, 0.03);
 
+                    if (c->scale < 0.5) {
+                        coin_count_scale_target = 0.4;
+                    }
+
                     if (c->scale < 0.2) {
                         coins.erase(coins.begin() + i);
-                        coin_count_rotation_target = 0;
                     }
                 }
             }   
@@ -252,9 +261,9 @@ namespace test_dual_screen {
         }
 
         void draw_coin_count(SceneData* scene) {
-            NE_ModelSetCoord(scene->coin, coin_count_x, coin_count_y, coin_count_z);
+            NE_ModelSetCoord(scene->coin, cameras::cam_x + 1, cameras::cam_y_bottom - 1.5, cameras::cam_z + cameras::cam_z_look_at_bottom_offset - .15);
             NE_ModelSetRot(scene->coin, -130, coin_count_rotation, 0);
-            NE_ModelScale(scene->coin, .4, .4, .4);
+            NE_ModelScale(scene->coin, coin_count_scale, coin_count_scale, coin_count_scale);
             NE_ModelDraw(scene->coin);
         }
     }
