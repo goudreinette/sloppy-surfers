@@ -51,7 +51,7 @@ namespace test_dual_screen {
 
                 // respawn in the distance
                 if (t.z < cam_z - 10) {
-                    t.z = cam_z + 50 + rand() % 20;
+                    t.z = cam_z + 50 + rand() % 100;
                 }
             }     
         }
@@ -88,7 +88,7 @@ namespace test_dual_screen {
 
         void update(SceneData* scene) {
             // Jump up for trains 
-            trains::train train_in_lane = trains::trains[current_lane];
+            trains::train train_in_lane = trains::trains[current_lane + 1];
             if (train_in_lane.z && (train_in_lane.z < cam_z + 20)) { // high camera
                 target_cam_y = 7;
                 target_cam_y_bottom = 2.5;
