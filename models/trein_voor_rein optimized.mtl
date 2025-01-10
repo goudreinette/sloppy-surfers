@@ -1,7 +1,7 @@
 # Blender 4.3.2 MTL File: 'trein_voor_rein optimized.blend'
 # www.blender.org
 
-newmtl blauw.003
+newmtl blauw.004
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.007499 0.070360 0.258183
@@ -11,7 +11,7 @@ Ni 1.450000
 d 1.000000
 illum 2
 
-newmtl geel.003
+newmtl geel.004
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.665387 0.351533 0.001821
@@ -21,7 +21,7 @@ Ni 1.450000
 d 1.000000
 illum 2
 
-newmtl grijs.003
+newmtl grijs.004
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.056129 0.074214 0.086500
@@ -31,7 +31,7 @@ Ni 1.450000
 d 1.000000
 illum 2
 
-newmtl wieljtes.003
+newmtl wieljtes.004
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.171441 0.072272 0.022174
@@ -41,7 +41,7 @@ Ni 1.450000
 d 1.000000
 illum 2
 
-newmtl zwart/raam.003
+newmtl zwart/raam.004
 Ns 618.998779
 Ka 0.919118 0.919118 0.919118
 Kd 0.010960 0.018500 0.029557
