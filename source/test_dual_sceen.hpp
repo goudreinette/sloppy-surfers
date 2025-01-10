@@ -2,8 +2,7 @@
 
 #include <NEMain.h>
 
-#include "teapot_bin.h"
-#include "sphere_bin.h"
+
 #include "trein_bin.h"
 
 #include "texture.h"
@@ -41,9 +40,9 @@ namespace test_dual_screen {
         };
         
         train trains[] = {
-            // train{.z = 50 + rand() % 20, .x = -lane_gap}, // left
+            train{.z = 50 + rand() % 20, .x = -lane_gap}, // left
             train{.z =  50 + rand() % 20, .x = 0}, // center
-            // train{.z =  50 + rand() % 20, .x = lane_gap} // right
+            train{.z =  50 + rand() % 20, .x = lane_gap} // right
         };
 
         void update(int cam_z) {
@@ -137,7 +136,7 @@ namespace test_dual_screen {
 
         };
 
-
+        coin coins[10]; // max 10
     }
 
 
