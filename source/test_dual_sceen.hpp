@@ -2,22 +2,22 @@
 
 #include <NEMain.h>
 
-
 #include "trein_bin.h"
 #include "coin_bin.h"
+#include "robot_dsm_bin.h"
+#include "robot_walk_dsa_bin.h"
 
 #include "texture.h"
 
 
 #define SKY_COLOR RGB15(18, 28, 31)
 
-
 namespace test_dual_screen {
     NE_Material *material;
     
     struct SceneData {
         NE_Camera *camera_top, *camera_bottom;
-        NE_Model *train, *track, *ground, *coin;
+        NE_Model *train, *track, *ground, *coin, *player;
     };
 
 
@@ -37,9 +37,7 @@ namespace test_dual_screen {
     GameState game_state = GameState::Menu;
 
 
-    namespace player {
-        int z;
-    }
+    
 
 
     // lanes
@@ -157,6 +155,26 @@ namespace test_dual_screen {
         }
     }
 
+    // player ---------------------------
+    namespace player {
+        NE_Animation *walk;
+
+        float target_x = 0;
+        float x = 0;
+
+        void update() {
+            target_x = current_lane * lane_gap;
+            x = utils::lerp(x, target_x, 0.3);
+        }
+
+        void draw(SceneData* scene) {
+            NE_ModelSetRot(scene->player, 0, 130, 0);
+            NE_ModelScale(scene->player, 0.2, 0.2, 0.2);
+            NE_ModelSetCoord(scene->player, x, -2, cameras::cam_z + 2.5);
+            NE_ModelDraw(scene->player);
+        }
+    }
+
 
     // coins ---------------------------
     namespace coins {
@@ -261,9 +279,8 @@ namespace test_dual_screen {
         ground::draw(scene);        
         tracks::draw(scene);
         trains::draw(scene);
-
-        // coin 
         coins::draw(scene);
+        player::draw(scene);
     }
 
     void draw_3d_scene_bottom(void *arg) {
@@ -279,9 +296,8 @@ namespace test_dual_screen {
         ground::draw(scene);
         tracks::draw(scene);
         trains::draw(scene);
-
-        // coin 
         coins::draw(scene);
+        player::draw(scene);
 }
 
 
@@ -292,6 +308,7 @@ namespace test_dual_screen {
         scene->track = NE_ModelCreate(NE_Static);
         scene->ground = NE_ModelCreate(NE_Static);
         scene->coin = NE_ModelCreate(NE_Static);
+        scene->player = NE_ModelCreate(NE_Animated);
 
         scene->camera_top = NE_CameraCreate();
         scene->camera_bottom = NE_CameraCreate();
@@ -301,6 +318,14 @@ namespace test_dual_screen {
         NE_ModelLoadStaticMesh(scene->track, track_bin);
         NE_ModelLoadStaticMesh(scene->ground, ground_bin);
         NE_ModelLoadStaticMesh(scene->coin, coin_bin);
+
+        // Load player model and animation
+        player::walk = NE_AnimationCreate();
+        NE_ModelLoadDSM(scene->player, robot_dsm_bin);
+        NE_AnimationLoad(player::walk, robot_walk_dsa_bin);
+        NE_ModelSetAnimation(scene->player, player::walk);
+        NE_ModelAnimStart(scene->player, NE_ANIM_LOOP, floattof32(0.3));
+
 
         // Create and set shared material
         material = NE_MaterialCreate();
@@ -358,7 +383,7 @@ namespace test_dual_screen {
             frame++;
             cameras::cam_z += speed;
 
-            NE_WaitForVBL(NE_CAN_SKIP_VBL);
+            NE_WaitForVBL(NE_UPDATE_ANIMATIONS);
 
             // Draw 3D scenes
             NE_ProcessDualArg(draw_3d_scene_bottom, draw_3d_scene_top, &scene, &scene);
@@ -422,6 +447,7 @@ namespace test_dual_screen {
             tracks::update();
             trains::update(cameras::cam_z);
             coins::update();
+            player::update();
             cameras::update(&scene);
         }
 

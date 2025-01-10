@@ -25,12 +25,12 @@ SOURCES  := source
 INCLUDES := include
 DATA     := data
 GRAPHICS := graphics
-AUDIO    :=
+AUDIO    := 
 ICON     :=
 
 # specify a directory which contains the nitro filesystem
 # this is relative to the Makefile
-NITRO    := nitrofiles
+NITRO    := 
 
 # These set the information text in the nds file
 GAME_TITLE     := $(shell basename $(CURDIR))
