@@ -29,20 +29,28 @@ namespace test_dual_screen {
         Credits
     };
 
+    int frame = 0;
     float speed = 0.1;
     int score = 0;
     int coins_collected = 0; // maybe?
     int high_score = 0;
     GameState game_state = GameState::Menu;
 
+
+    namespace player {
+        int z;
+    }
+
+
     // lanes
     int lane_gap = 2;
-    int current_lane = 0;
+    int current_lane = 0; // -1 / 0 / 1
 
 
     // swipe detection ------------------------------------
     namespace swipe_detection {
         int start_touch_x = 0;
+        int start_touch_y = 0;
         bool is_swiping = false;
 
         // void update(bool touch_down, int touch_x) { }
@@ -129,7 +137,7 @@ namespace test_dual_screen {
             }
 
             // Lerp camera
-            float lerp_speed = 0.05; //utils::map(speed, 0.0, 3.0, 0.1, 0.3); // camera moves faster when speed increases
+            float lerp_speed = 0.1; //utils::map(speed, 0.0, 3.0, 0.1, 0.3); // camera moves faster when speed increases
             cam_x = utils::lerp(cam_x, target_cam_x, lerp_speed);
             cam_y = utils::lerp(cam_y, target_cam_y, lerp_speed);
             cam_y_bottom = utils::lerp(cam_y_bottom, target_cam_y_bottom, lerp_speed);
@@ -153,10 +161,38 @@ namespace test_dual_screen {
     // coins ---------------------------
     namespace coins {
         struct coin {
-
+            int x, y, z;
         };
 
-        coin coins[10]; // max 10
+        std::vector<coin> coins; // max 10
+
+
+        void update() {
+            if (frame % 45 == 0) {
+                coin new_coin = coin();
+                new_coin.x = (rand() % 3 - 1) * lane_gap;
+                new_coin.y = -2;
+                new_coin.z = cameras::cam_z + 50;
+
+                coins.push_back(new_coin);
+            }
+
+            for (int i = 0; i < coins.size(); i++) {
+                coin c = coins.at(i);
+                if (c.z < cameras::cam_z - 10) {
+                    coins.erase(coins.begin() + i);
+                }
+            }   
+        }
+
+        void draw(SceneData* scene) {
+            NE_ModelRotate(scene->coin, 0, 10, 0);
+
+            for (coin &c: coins) {
+                NE_ModelSetCoord(scene->coin, c.x, c.y, c.z);
+                NE_ModelDraw(scene->coin);
+            }
+        }
     }
 
 
@@ -209,14 +245,6 @@ namespace test_dual_screen {
         }
     }
 
-    // coins ---- 
-    void draw_coin(SceneData* scene) {
-        // coin 
-        NE_ModelSetCoord(scene->coin, 0, -2, cameras::cam_z + 5);
-        NE_ModelRotate(scene->coin, 0, 10, 0);
-        NE_ModelDraw(scene->coin);
-    }
-
     
 
     // DRAW the two screens ----------------------------
@@ -235,7 +263,7 @@ namespace test_dual_screen {
         trains::draw(scene);
 
         // coin 
-        draw_coin(scene);
+        coins::draw(scene);
     }
 
     void draw_3d_scene_bottom(void *arg) {
@@ -253,7 +281,7 @@ namespace test_dual_screen {
         trains::draw(scene);
 
         // coin 
-        draw_coin(scene);
+        coins::draw(scene);
 }
 
 
@@ -327,6 +355,7 @@ namespace test_dual_screen {
 
         while (1) {
             // Move forward
+            frame++;
             cameras::cam_z += speed;
 
             NE_WaitForVBL(NE_CAN_SKIP_VBL);
@@ -362,16 +391,22 @@ namespace test_dual_screen {
             // Swipe detection ----------------
             if (kdown & KEY_TOUCH) {
                 swipe_detection::start_touch_x = touch.px;
+                swipe_detection::start_touch_y = touch.py;
                 swipe_detection::is_swiping = true;
             }
 
             if (keys & KEY_TOUCH && swipe_detection::is_swiping) {
-                int distance = swipe_detection::start_touch_x - touch.px;
-                if (distance < -20) {
+                int distance_x = swipe_detection::start_touch_x - touch.px;
+                int distance_y = swipe_detection::start_touch_y - touch.py;
+                if (distance_x < -20) {
                     swipe_detection::is_swiping = false;
                     if (current_lane >= 0) current_lane--;
                 }
-                if (distance > 20) {
+                else if (distance_x > 20) {
+                    swipe_detection::is_swiping = false;
+                    if (current_lane < 2) current_lane++;
+                }
+                else if (distance_y < -40) {
                     swipe_detection::is_swiping = false;
                     if (current_lane < 2) current_lane++;
                 }
@@ -386,6 +421,7 @@ namespace test_dual_screen {
             ground::update();
             tracks::update();
             trains::update(cameras::cam_z);
+            coins::update();
             cameras::update(&scene);
         }
 
