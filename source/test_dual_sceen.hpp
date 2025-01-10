@@ -4,6 +4,7 @@
 
 
 #include "trein_bin.h"
+#include "coin_bin.h"
 
 #include "texture.h"
 
@@ -16,7 +17,7 @@ namespace test_dual_screen {
     
     struct SceneData {
         NE_Camera *camera_top, *camera_bottom;
-        NE_Model *train, *track, *ground;
+        NE_Model *train, *track, *ground, *coin;
     };
 
 
@@ -109,7 +110,7 @@ namespace test_dual_screen {
             }
 
             // Lerp camera
-            float lerp_speed = utils::map(speed, 0.0, 3.0, 0.1, 0.6); // camera moves faster when speed increases
+            float lerp_speed = 0.05; //utils::map(speed, 0.0, 3.0, 0.1, 0.3); // camera moves faster when speed increases
             cam_x = utils::lerp(cam_x, target_cam_x, lerp_speed);
             cam_y = utils::lerp(cam_y, target_cam_y, lerp_speed);
             cam_y_bottom = utils::lerp(cam_y_bottom, target_cam_y_bottom, lerp_speed);
@@ -189,6 +190,14 @@ namespace test_dual_screen {
         }
     }
 
+    // coins ---- 
+    void draw_coin(SceneData* scene) {
+        // coin 
+        NE_ModelSetCoord(scene->coin, 0, -2, cameras::cam_z + 5);
+        NE_ModelRotate(scene->coin, 0, 10, 0);
+        NE_ModelDraw(scene->coin);
+    }
+
     
 
     // DRAW the two screens ----------------------------
@@ -205,6 +214,9 @@ namespace test_dual_screen {
         ground::draw(scene);        
         tracks::draw(scene);
         trains::draw(scene);
+
+        // coin 
+        draw_coin(scene);
     }
 
     void draw_3d_scene_bottom(void *arg) {
@@ -220,7 +232,10 @@ namespace test_dual_screen {
         ground::draw(scene);
         tracks::draw(scene);
         trains::draw(scene);
-    }
+
+        // coin 
+        draw_coin(scene);
+}
 
 
     // INIT graphics objects ------------------------------
@@ -229,6 +244,7 @@ namespace test_dual_screen {
         scene->train = NE_ModelCreate(NE_Static);
         scene->track = NE_ModelCreate(NE_Static);
         scene->ground = NE_ModelCreate(NE_Static);
+        scene->coin = NE_ModelCreate(NE_Static);
 
         scene->camera_top = NE_CameraCreate();
         scene->camera_bottom = NE_CameraCreate();
@@ -237,6 +253,7 @@ namespace test_dual_screen {
         NE_ModelLoadStaticMesh(scene->train, trein_bin);
         NE_ModelLoadStaticMesh(scene->track, track_bin);
         NE_ModelLoadStaticMesh(scene->ground, ground_bin);
+        NE_ModelLoadStaticMesh(scene->coin, coin_bin);
 
         // Create and set shared material
         material = NE_MaterialCreate();
@@ -253,6 +270,7 @@ namespace test_dual_screen {
         NE_ModelSetMaterial(scene->train, material);
         NE_ModelSetMaterial(scene->track, material);
         NE_ModelSetMaterial(scene->ground, material);
+        NE_ModelSetMaterial(scene->coin, material);
 
         // Set light color and direction
         NE_LightSet(0, NE_White, -0.5, -0.5, -0.5);

@@ -56,6 +56,11 @@ python3 $OBJ2DL \
     --texture 256 256
 
 python3 $OBJ2DL \
+    --input ./models/coin.obj \
+    --output data/coin.bin \
+    --texture 256 256
+
+python3 $OBJ2DL \
     --input ./models/track.obj \
     --output data/track.bin \
     --texture 256 256
