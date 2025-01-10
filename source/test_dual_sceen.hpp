@@ -21,7 +21,7 @@ namespace test_dual_screen {
     };
 
 
-    // game ------------------------------------
+    // game -----------------------------------------------
     enum class GameState {
         Menu,
         Playing, 
@@ -38,6 +38,17 @@ namespace test_dual_screen {
     // lanes
     int lane_gap = 2;
     int current_lane = 0;
+
+
+    // swipe detection ------------------------------------
+    namespace swipe_detection {
+        int start_touch_x = 0;
+        bool is_swiping = false;
+
+        // void update(bool touch_down, int touch_x) { }
+        // void swiped_left() { }
+        // void swiped_right() { }
+    }
 
 
     // trains
@@ -312,6 +323,7 @@ namespace test_dual_screen {
 
         bool console = true;
 
+        touchPosition touch;
 
         while (1) {
             // Move forward
@@ -326,6 +338,9 @@ namespace test_dual_screen {
             scanKeys();
             uint32_t keys = keysHeld();
             uint32_t kdown = keysDown();
+            int keys_up = keysUp();
+
+            touchRead(&touch);
 
             // Speed and lane switching
             if (keys & KEY_UP) {
@@ -342,6 +357,31 @@ namespace test_dual_screen {
                 // NE_ModelRotate(scene.train, 0, -2, 0);
                 if (current_lane >= 0) current_lane--;
             }
+
+
+            // Swipe detection ----------------
+            if (kdown & KEY_TOUCH) {
+                swipe_detection::start_touch_x = touch.px;
+                swipe_detection::is_swiping = true;
+            }
+
+            if (keys & KEY_TOUCH && swipe_detection::is_swiping) {
+                int distance = swipe_detection::start_touch_x - touch.px;
+                if (distance < -20) {
+                    swipe_detection::is_swiping = false;
+                    if (current_lane >= 0) current_lane--;
+                }
+                if (distance > 20) {
+                    swipe_detection::is_swiping = false;
+                    if (current_lane < 2) current_lane++;
+                }
+            }
+
+            if (!keys_up & KEY_TOUCH) {
+                swipe_detection::is_swiping = false;
+            }
+
+
 
             ground::update();
             tracks::update();
