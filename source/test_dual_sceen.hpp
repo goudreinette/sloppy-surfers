@@ -21,11 +21,19 @@ namespace test_dual_screen {
     };
 
 
-    // game
+    // game ------------------------------------
+    enum class GameState {
+        Menu,
+        Playing, 
+        GameOver,
+        Credits
+    };
+
     float speed = 0.1;
     int score = 0;
     int coins_collected = 0; // maybe?
-
+    int high_score = 0;
+    GameState game_state = GameState::Menu;
 
     // lanes
     int lane_gap = 2;
