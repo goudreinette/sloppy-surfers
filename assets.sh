@@ -50,6 +50,7 @@ python3 $OBJ2DL \
     --output data/swf.bin \
     --texture 256 256
 
+
 python3 $OBJ2DL \
     --input ./models/trein.obj \
     --output data/trein.bin \
@@ -80,6 +81,50 @@ python3 $OBJ2DL \
     --input ./models/sloppy.obj \
     --output data/sloppy.bin \
     --texture 256 256
+
+
+python3 $OBJ2DL \
+    --input ./models/number0.obj \
+    --output data/number0.bin \
+    --texture 256 256
+
+python3 $OBJ2DL \
+    --input ./models/number1.obj \
+    --output data/number1.bin \
+    --texture 256 256
+
+python3 $OBJ2DL \
+    --input ./models/number2.obj \
+    --output data/number2.bin \
+    --texture 256 256
+
+
+python3 $OBJ2DL \
+    --input ./models/number3.obj \
+    --output data/number3.bin \
+    --texture 256 256
+
+python3 $OBJ2DL \
+    --input ./models/number4.obj \
+    --output data/number4.bin \
+    --texture 256 256
+
+
+python3 $OBJ2DL \
+    --input ./models/number5.obj \
+    --output data/number5.bin \
+    --texture 256 256
+
+python3 $OBJ2DL \
+    --input ./models/number6.obj \
+    --output data/number6.bin \
+    --texture 256 256
+
+python3 $OBJ2DL \
+    --input ./models/number7.obj \
+    --output data/number7.bin \
+    --texture 256 256
+
 
 # for background in assets/affine-bgs/*.png; do
 #     grit $background -ftb -fh! -gb -gB16

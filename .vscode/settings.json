@@ -16,7 +16,8 @@
         "filesystem.h": "c",
         "algorithm": "cpp",
         "iterator": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "format": "cpp"
     },
     "terminal.integrated.defaultProfile.windows": "MSYS2",
     "terminal.integrated.profiles.windows": {

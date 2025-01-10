@@ -1,12 +1,24 @@
 #pragma once
 
 #include <NEMain.h>
+#include <string>
+#include <format> 
 
 #include "trein_bin.h"
 #include "coin_bin.h"
 #include "pole_bin.h"
 #include "robot_dsm_bin.h"
 #include "robot_walk_dsa_bin.h"
+
+#include "number0_bin.h"
+#include "number1_bin.h"
+#include "number2_bin.h"
+#include "number3_bin.h"
+#include "number4_bin.h"
+#include "number5_bin.h"
+#include "number6_bin.h"
+#include "number7_bin.h"
+
 
 #include "texture.h"
 
@@ -19,6 +31,7 @@ namespace test_dual_screen {
     struct SceneData {
         NE_Camera *camera_top, *camera_bottom;
         NE_Model *train, *track, *pole, *ground, *coin, *player;
+        NE_Model *numbers[8];
     };
 
 
@@ -68,8 +81,8 @@ namespace test_dual_screen {
         
         train trains[] = {
             train{.z = 50 + rand() % 20, .x = -lane_gap}, // left
-            train{.z =  50 + rand() % 20, .x = 0}, // center
-            train{.z =  50 + rand() % 20, .x = lane_gap} // right
+            train{.z =  100 + rand() % 20, .x = 0}, // center
+            train{.z =  150 + rand() % 20, .x = lane_gap} // right
         };
 
         void update(int cam_z) {
@@ -78,7 +91,7 @@ namespace test_dual_screen {
 
                 // respawn in the distance
                 if (t.z < cam_z - 10) {
-                    t.z = cam_z + 50 + rand() % 100;
+                    t.z = cam_z + 50 + rand() % 150;
                 }
             }     
         }
@@ -86,6 +99,7 @@ namespace test_dual_screen {
         void draw(SceneData* scene)  {
             // draw train
             for (train &t: trains) {
+                NE_ModelScale(scene->train, 1.3, 1.3, 1.3);
                 NE_ModelSetCoord(scene->train, t.x, -3, t.z);
                 NE_ModelDraw(scene->train);
             }
@@ -227,6 +241,7 @@ namespace test_dual_screen {
                 }
 
                 if ((abs(c->x - player::x) + abs(c->z - player::z)) < 1 && !c->is_collecting) {
+                    coins_collected++;
                     c->is_collecting = true;
                     // coin_count_rotation_target = 800;
                     coin_count_scale = .8;
@@ -261,11 +276,23 @@ namespace test_dual_screen {
         }
 
         void draw_coin_count(SceneData* scene) {
+            // the coin
             NE_ModelSetCoord(scene->coin, cameras::cam_x + 1, cameras::cam_y_bottom - 1.5, cameras::cam_z + cameras::cam_z_look_at_bottom_offset - .15);
             NE_ModelSetRot(scene->coin, -130, coin_count_rotation, 0);
             NE_ModelScale(scene->coin, coin_count_scale, coin_count_scale, coin_count_scale);
             NE_ModelDraw(scene->coin);
-        }
+
+            // the score
+            std::string coin_count_str = std::format("{}", coins_collected);
+            for (int i = 0; i < coin_count_str.size(); i++) {
+                int number = std::stoi(coin_count_str.substr(i, 1));
+                NE_Model* number_to_draw = scene->numbers[number];
+                NE_ModelSetCoord(number_to_draw, cameras::cam_x + .6 - i * 0.2, cameras::cam_y_bottom - 1.5, cameras::cam_z + cameras::cam_z_look_at_bottom_offset - .15);
+                NE_ModelSetRot(number_to_draw, 130, 0, 0);
+                NE_ModelScale(number_to_draw, 0.1, 0.1, 0.1);
+                NE_ModelDraw(number_to_draw);
+            }
+}
     }
 
 
@@ -397,6 +424,19 @@ namespace test_dual_screen {
         NE_ModelLoadStaticMesh(scene->ground, ground_bin);
         NE_ModelLoadStaticMesh(scene->coin, coin_bin);
 
+        // Numbers
+        for (int i = 0; i < 8; i++) {
+            scene->numbers[i] = NE_ModelCreate(NE_Static);
+        }
+        NE_ModelLoadStaticMesh(scene->numbers[0], number0_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[1], number1_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[2], number2_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[3], number3_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[4], number4_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[5], number5_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[6], number6_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[7], number7_bin);
+
         // Load player model and animation
         player::walk = NE_AnimationCreate();
         NE_ModelLoadDSM(scene->player, robot_dsm_bin);
@@ -477,12 +517,12 @@ namespace test_dual_screen {
             touchRead(&touch);
 
             // Speed and lane switching
-            if (keys & KEY_UP) {
-                speed += 0.01;
-            }
-            if (keys & KEY_DOWN) {
-                speed -= 0.01;
-            }
+            // if (keys & KEY_UP) {
+            //     speed += 0.01;
+            // }
+            // if (keys & KEY_DOWN) {
+            //     speed -= 0.01;
+            // }
             if (kdown & KEY_LEFT) {
                 // NE_ModelRotate(scene.train, 0, 2, 0);
                 if (current_lane < 1) current_lane++;
