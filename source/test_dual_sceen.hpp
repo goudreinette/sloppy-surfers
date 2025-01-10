@@ -18,6 +18,8 @@
 #include "number5_bin.h"
 #include "number6_bin.h"
 #include "number7_bin.h"
+#include "number8_bin.h"
+#include "number9_bin.h"
 
 
 #include "texture.h"
@@ -31,7 +33,7 @@ namespace test_dual_screen {
     struct SceneData {
         NE_Camera *camera_top, *camera_bottom;
         NE_Model *train, *track, *pole, *ground, *coin, *player;
-        NE_Model *numbers[8];
+        NE_Model *numbers[10];
     };
 
 
@@ -425,7 +427,7 @@ namespace test_dual_screen {
         NE_ModelLoadStaticMesh(scene->coin, coin_bin);
 
         // Numbers
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 10; i++) {
             scene->numbers[i] = NE_ModelCreate(NE_Static);
         }
         NE_ModelLoadStaticMesh(scene->numbers[0], number0_bin);
@@ -436,8 +438,8 @@ namespace test_dual_screen {
         NE_ModelLoadStaticMesh(scene->numbers[5], number5_bin);
         NE_ModelLoadStaticMesh(scene->numbers[6], number6_bin);
         NE_ModelLoadStaticMesh(scene->numbers[7], number7_bin);
-        NE_ModelLoadStaticMesh(scene->numbers[8], number7_bin);
-        NE_ModelLoadStaticMesh(scene->numbers[9], number7_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[8], number8_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[9], number9_bin);
 
         // Load player model and animation
         player::walk = NE_AnimationCreate();
