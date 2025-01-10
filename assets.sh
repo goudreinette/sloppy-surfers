@@ -6,8 +6,8 @@ TOOLS=$NITRO_ENGINE/tools
 OBJ2DL=$TOOLS/obj2dl/obj2dl.py
 
 
-rm -rf data
-mkdir -p data
+# rm -rf data
+# mkdir -p data
 #
 #python3 $OBJ2DL \
 #    --input ./models/clippy.obj \
@@ -68,6 +68,11 @@ python3 $OBJ2DL \
 python3 $OBJ2DL \
     --input ./models/ground.obj \
     --output data/ground.bin \
+    --texture 256 256
+
+python3 $OBJ2DL \
+    --input ./models/pole.obj \
+    --output data/pole.bin \
     --texture 256 256
 
 

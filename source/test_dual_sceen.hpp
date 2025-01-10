@@ -4,6 +4,7 @@
 
 #include "trein_bin.h"
 #include "coin_bin.h"
+#include "pole_bin.h"
 #include "robot_dsm_bin.h"
 #include "robot_walk_dsa_bin.h"
 
@@ -17,7 +18,7 @@ namespace test_dual_screen {
     
     struct SceneData {
         NE_Camera *camera_top, *camera_bottom;
-        NE_Model *train, *track, *ground, *coin, *player;
+        NE_Model *train, *track, *pole, *ground, *coin, *player;
     };
 
 
@@ -30,7 +31,7 @@ namespace test_dual_screen {
     };
 
     int frame = 0;
-    float speed = 0.1;
+    float speed = 0.075;
     int score = 0;
     int coins_collected = 0; // maybe?
     int high_score = 0;
@@ -41,7 +42,7 @@ namespace test_dual_screen {
 
 
     // lanes
-    int lane_gap = 2;
+    float lane_gap = 2.5;
     int current_lane = 0; // -1 / 0 / 1
 
 
@@ -155,22 +156,28 @@ namespace test_dual_screen {
         }
     }
 
+
     // player ---------------------------
     namespace player {
         NE_Animation *walk;
 
         float target_x = 0;
         float x = 0;
+        float y = -2;
+        float z = 0;
+
+        const float scale = 0.15;
 
         void update() {
-            target_x = current_lane * lane_gap;
-            x = utils::lerp(x, target_x, 0.3);
+            target_x = (float) current_lane * lane_gap;
+            x = utils::lerp(x, target_x, 0.2);
+            z = cameras::cam_z + 2.5;
         }
 
         void draw(SceneData* scene) {
             NE_ModelSetRot(scene->player, 0, 130, 0);
-            NE_ModelScale(scene->player, 0.2, 0.2, 0.2);
-            NE_ModelSetCoord(scene->player, x, -2, cameras::cam_z + 2.5);
+            NE_ModelScale(scene->player, scale, scale, scale);
+            NE_ModelSetCoord(scene->player, x, y, z);
             NE_ModelDraw(scene->player);
         }
     }
@@ -178,12 +185,20 @@ namespace test_dual_screen {
 
     // coins ---------------------------
     namespace coins {
+        int rotation = 0;
+
         struct coin {
-            int x, y, z;
+            float x, y, z;
+            bool is_collecting = false;
+            float scale = 1;
         };
 
         std::vector<coin> coins; // max 10
 
+        float coin_count_x, coin_count_y, coin_count_z;
+
+        float coin_count_rotation = 0;
+        float coin_count_rotation_target = 0;
 
         void update() {
             if (frame % 45 == 0) {
@@ -195,23 +210,57 @@ namespace test_dual_screen {
                 coins.push_back(new_coin);
             }
 
+            coin_count_x = cameras::cam_x + 1;
+            coin_count_y = cameras::cam_y_bottom - 1.5;
+            coin_count_z = cameras::cam_z + cameras::cam_z_look_at_bottom_offset - .15;
+            coin_count_rotation = utils::lerp(coin_count_rotation, coin_count_rotation_target, 0.2);
+
             for (int i = 0; i < coins.size(); i++) {
-                coin c = coins.at(i);
-                if (c.z < cameras::cam_z - 10) {
+                coin *c = &coins.at(i);
+                if (c->z < cameras::cam_z - 10) {
                     coins.erase(coins.begin() + i);
+                }
+
+                if ((abs(c->x - player::x) + abs(c->z - player::z)) < 1 && !c->is_collecting) {
+                    c->is_collecting = true;
+                    coin_count_rotation_target = 480;
+                }
+
+                if (c->is_collecting) {
+                    c->x = utils::lerp(c->x, coin_count_x, 0.05);
+                    c->y = utils::lerp(c->y, coin_count_y, 0.05);
+                    c->z = utils::lerp(c->z, coin_count_z, 0.05);
+                    c->scale = utils::lerp(c->scale, 0, 0.03);
+
+                    if (c->scale < 0.2) {
+                        coins.erase(coins.begin() + i);
+                        coin_count_rotation_target = 0;
+                    }
                 }
             }   
         }
 
         void draw(SceneData* scene) {
-            NE_ModelRotate(scene->coin, 0, 10, 0);
+            rotation += 10;
+            NE_ModelSetRot(scene->coin, 0, rotation, 0);
 
             for (coin &c: coins) {
+                NE_ModelScale(scene->coin, c.scale, c.scale, c.scale);
                 NE_ModelSetCoord(scene->coin, c.x, c.y, c.z);
                 NE_ModelDraw(scene->coin);
             }
         }
+
+        void draw_coin_count(SceneData* scene) {
+            NE_ModelSetCoord(scene->coin, coin_count_x, coin_count_y, coin_count_z);
+            NE_ModelSetRot(scene->coin, -130, coin_count_rotation, 0);
+            NE_ModelScale(scene->coin, .4, .4, .4);
+            NE_ModelDraw(scene->coin);
+        }
     }
+
+
+
 
 
     // ground ---------------------------
@@ -244,14 +293,27 @@ namespace test_dual_screen {
         int track_gap = 7;
         int track_start_z = -10;
 
+        int pole_start_z = -10;
+        int pole_gap = 28;
+        const int num_pole_parts = 7;
+
         void update() {
             if (track_start_z < cameras::cam_z - 10) {
                 track_start_z += 7;
             }
+            
+            if (pole_start_z < cameras::cam_z - 28) {
+                pole_start_z += 28;
+            }
         }
 
         void draw(SceneData* scene) {
-            // draw tracks
+            for (int pole_i = 0; pole_i < num_pole_parts; ++pole_i) {
+                // draw tracks
+                NE_ModelSetCoord(scene->pole, 0, -3, pole_start_z + pole_i * pole_gap);
+                NE_ModelDraw(scene->pole);
+            }
+
             for (int track_i = 0; track_i < num_track_parts; ++track_i) {
                 for (int lane = -1; lane <= 1; ++lane) {
                     NE_ModelSetCoord(scene->track, lane * lane_gap - .200, track_height, track_start_z + track_i * track_gap);
@@ -281,7 +343,9 @@ namespace test_dual_screen {
         trains::draw(scene);
         coins::draw(scene);
         player::draw(scene);
-    }
+
+        coins::draw_coin_count(scene);
+}
 
     void draw_3d_scene_bottom(void *arg) {
         SceneData *scene = (SceneData*) arg;
@@ -298,6 +362,9 @@ namespace test_dual_screen {
         trains::draw(scene);
         coins::draw(scene);
         player::draw(scene);
+
+        // UI
+        coins::draw_coin_count(scene);
 }
 
 
@@ -306,6 +373,7 @@ namespace test_dual_screen {
         // Allocate objects...
         scene->train = NE_ModelCreate(NE_Static);
         scene->track = NE_ModelCreate(NE_Static);
+        scene->pole = NE_ModelCreate(NE_Static);
         scene->ground = NE_ModelCreate(NE_Static);
         scene->coin = NE_ModelCreate(NE_Static);
         scene->player = NE_ModelCreate(NE_Animated);
@@ -316,6 +384,7 @@ namespace test_dual_screen {
         // Load models
         NE_ModelLoadStaticMesh(scene->train, trein_bin);
         NE_ModelLoadStaticMesh(scene->track, track_bin);
+        NE_ModelLoadStaticMesh(scene->pole, pole_bin);
         NE_ModelLoadStaticMesh(scene->ground, ground_bin);
         NE_ModelLoadStaticMesh(scene->coin, coin_bin);
 
@@ -324,7 +393,7 @@ namespace test_dual_screen {
         NE_ModelLoadDSM(scene->player, robot_dsm_bin);
         NE_AnimationLoad(player::walk, robot_walk_dsa_bin);
         NE_ModelSetAnimation(scene->player, player::walk);
-        NE_ModelAnimStart(scene->player, NE_ANIM_LOOP, floattof32(0.3));
+        NE_ModelAnimStart(scene->player, NE_ANIM_LOOP, floattof32(0.25));
 
 
         // Create and set shared material
@@ -342,6 +411,7 @@ namespace test_dual_screen {
         NE_ModelSetMaterial(scene->train, material);
         NE_ModelSetMaterial(scene->track, material);
         NE_ModelSetMaterial(scene->ground, material);
+        NE_ModelSetMaterial(scene->pole, material);
         NE_ModelSetMaterial(scene->coin, material);
 
         // Set light color and direction
@@ -382,6 +452,7 @@ namespace test_dual_screen {
             // Move forward
             frame++;
             cameras::cam_z += speed;
+            speed += 0.00001;
 
             NE_WaitForVBL(NE_UPDATE_ANIMATIONS);
 
@@ -405,7 +476,7 @@ namespace test_dual_screen {
             }
             if (kdown & KEY_LEFT) {
                 // NE_ModelRotate(scene.train, 0, 2, 0);
-                if (current_lane < 2) current_lane++;
+                if (current_lane < 1) current_lane++;
             }
             if (kdown & KEY_RIGHT) {
                 // NE_ModelRotate(scene.train, 0, -2, 0);
@@ -423,15 +494,15 @@ namespace test_dual_screen {
             if (keys & KEY_TOUCH && swipe_detection::is_swiping) {
                 int distance_x = swipe_detection::start_touch_x - touch.px;
                 int distance_y = swipe_detection::start_touch_y - touch.py;
-                if (distance_x < -20) {
+                if (distance_x < -10) {
                     swipe_detection::is_swiping = false;
                     if (current_lane >= 0) current_lane--;
                 }
-                else if (distance_x > 20) {
+                else if (distance_x > 10) {
                     swipe_detection::is_swiping = false;
-                    if (current_lane < 2) current_lane++;
+                    if (current_lane < 1) current_lane++;
                 }
-                else if (distance_y < -40) {
+                else if (distance_y < -20) {
                     swipe_detection::is_swiping = false;
                     if (current_lane < 2) current_lane++;
                 }
