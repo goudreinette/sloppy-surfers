@@ -125,6 +125,16 @@ python3 $OBJ2DL \
     --output data/number7.bin \
     --texture 256 256
 
+python3 $OBJ2DL \
+    --input ./models/number8.obj \
+    --output data/number8.bin \
+    --texture 256 256
+
+python3 $OBJ2DL \
+    --input ./models/number9.obj \
+    --output data/number9.bin \
+    --texture 256 256
+
 
 # for background in assets/affine-bgs/*.png; do
 #     grit $background -ftb -fh! -gb -gB16

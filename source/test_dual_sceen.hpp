@@ -436,6 +436,8 @@ namespace test_dual_screen {
         NE_ModelLoadStaticMesh(scene->numbers[5], number5_bin);
         NE_ModelLoadStaticMesh(scene->numbers[6], number6_bin);
         NE_ModelLoadStaticMesh(scene->numbers[7], number7_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[8], number7_bin);
+        NE_ModelLoadStaticMesh(scene->numbers[9], number7_bin);
 
         // Load player model and animation
         player::walk = NE_AnimationCreate();
