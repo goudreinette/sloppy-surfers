@@ -22,6 +22,7 @@
 #include "number9_bin.h"
 
 #include "gameover_bin.h"
+#include "hiscore_bin.h"
 #include "sloppysurfers_bin.h"
 
 #include "texture.h"
@@ -36,7 +37,7 @@ namespace sloppy_surfers {
         NE_Camera *camera_top, *camera_bottom;
         NE_Model *train, *track, *pole, *ground, *coin, *player;
         NE_Model *numbers[10];
-        NE_Model *gameover, *sloppysurfers;
+        NE_Model *gameover, *sloppysurfers, *hiscore;
     };
 
 
@@ -207,12 +208,13 @@ namespace sloppy_surfers {
 
         void update() {
             for (trains::train &t: trains::trains) {
+                // GameOver state
                 if (abs(t.x - x) < 1 && abs(t.z - z) < 8.25) {
                     t.hit = true;
                     hit = true;
                     target_z = cameras::cam_z - 2;
                     target_x = rand() % 5 - 6;
-                    target_rotation_y += 20;
+                    target_rotation_y = 150;
                     game_state = GameState::GameOver;
                 }
             }
@@ -282,6 +284,11 @@ namespace sloppy_surfers {
 
                 if ((abs(c->x - player::x) + abs(c->z - player::z)) < 1 && !c->is_collecting) {
                     coins_collected++;
+                    // Update highscore
+                    if (coins_collected > high_score) {
+                        high_score = coins_collected;
+                    }
+
                     c->is_collecting = true;
                     // coin_count_rotation_target = 800;
                     coin_count_scale = .8;
@@ -332,10 +339,25 @@ namespace sloppy_surfers {
                 NE_ModelScale(number_to_draw, 0.1, 0.1, 0.1);
                 NE_ModelDraw(number_to_draw);
             }
-}
+
+            // hiscore
+            float hiscore_scale = .125;
+            NE_ModelSetCoord(scene->hiscore, cameras::cam_x - .95, cameras::cam_y_bottom - 1.8, cameras::cam_z + cameras::cam_z_look_at_bottom_offset + .1);
+            NE_ModelScale(scene->hiscore, hiscore_scale, hiscore_scale, hiscore_scale);
+            NE_ModelSetRot(scene->hiscore, -120, 0, 0);
+            NE_ModelDraw(scene->hiscore);
+
+            std::string high_score_str = std::format("{}", high_score);
+            for (int i = 0; i < high_score_str.size(); i++) {
+                int number = std::stoi(high_score_str.substr(i, 1));
+                NE_Model* number_to_draw = scene->numbers[number];
+                NE_ModelSetCoord(number_to_draw, cameras::cam_x - .6 - i * 0.15, cameras::cam_y_bottom - 1.5, cameras::cam_z + cameras::cam_z_look_at_bottom_offset - .15);
+                NE_ModelSetRot(number_to_draw, 130, 0, 0);
+                NE_ModelScale(number_to_draw, 0.06, 0.06, 0.06);
+                NE_ModelDraw(number_to_draw);
+            }
+        }
     }
-
-
 
 
 
@@ -465,6 +487,8 @@ namespace sloppy_surfers {
         scene->ground = NE_ModelCreate(NE_Static);
         scene->coin = NE_ModelCreate(NE_Static);
         scene->gameover = NE_ModelCreate(NE_Static);
+        scene->hiscore = NE_ModelCreate(NE_Static);
+        scene->sloppysurfers = NE_ModelCreate(NE_Static);
         scene->player = NE_ModelCreate(NE_Animated);
 
         scene->camera_top = NE_CameraCreate();
@@ -477,6 +501,8 @@ namespace sloppy_surfers {
         NE_ModelLoadStaticMesh(scene->ground, ground_bin);
         NE_ModelLoadStaticMesh(scene->coin, coin_bin);
         NE_ModelLoadStaticMesh(scene->gameover, gameover_bin);
+        NE_ModelLoadStaticMesh(scene->sloppysurfers, sloppysurfers_bin);
+        NE_ModelLoadStaticMesh(scene->hiscore, hiscore_bin);
 
         // Numbers
         for (int i = 0; i < 10; i++) {
@@ -518,6 +544,7 @@ namespace sloppy_surfers {
         NE_ModelSetMaterial(scene->ground, material);
         NE_ModelSetMaterial(scene->pole, material);
         NE_ModelSetMaterial(scene->coin, material);
+        NE_ModelSetMaterial(scene->hiscore, material);
 
         // Set light color and direction
         NE_LightSet(0, NE_White, -0.5, -0.5, -0.5);
@@ -556,6 +583,9 @@ namespace sloppy_surfers {
         cameras::is_rewinding = true;
 
         player::hit = false;
+        player::rotation_y = 130;
+
+        coins::coins.clear();
 }
 
 
@@ -600,6 +630,10 @@ namespace sloppy_surfers {
                 frame++;
                 cameras::cam_z += speed;
                 speed += 0.00001;
+                
+                if (frame % 10 == 0) {
+                    score += 1;
+                }
 
                 // Speed and lane switching
                 // if (keys & KEY_UP) {
