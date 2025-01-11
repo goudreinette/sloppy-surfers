@@ -2,9 +2,12 @@
 
 #include <NEMain.h>
 #include <string>
+#include <vector>
 #include <format> 
 
 #include "trein_bin.h"
+#include "ground_bin.h"
+#include "track_bin.h"
 #include "coin_bin.h"
 #include "pole_bin.h"
 #include "robot_dsm_bin.h"
@@ -26,6 +29,8 @@
 #include "sloppysurfers_bin.h"
 
 #include "texture.h"
+
+#include "utils.hpp"
 
 
 #define SKY_COLOR RGB15(18, 28, 31)
