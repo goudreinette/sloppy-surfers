@@ -23,7 +23,7 @@
 #include "trein.hpp"
 
 #include "test_character_animation.hpp"
-#include "test_dual_sceen.hpp"
+#include "sloppy_surfers.hpp"
 
 
 
@@ -98,7 +98,7 @@ void load_mp3_material() {
 
 
 int main(int argc, char *argv[]) {
-    test_dual_screen::main();
+    sloppy_surfers::main();
 
 //     nitroFSInit(NULL);
 //     NF_SetRootFolder("NITROFS");

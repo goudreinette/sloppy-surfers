@@ -28,7 +28,7 @@
 
 #define SKY_COLOR RGB15(18, 28, 31)
 
-namespace test_dual_screen {
+namespace sloppy_surfers {
     NE_Material *material;
     
     struct SceneData {
