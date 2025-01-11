@@ -139,7 +139,7 @@ namespace sloppy_surfers {
         void update(SceneData* scene) {
             // Jump up for trains 
             trains::train train_in_lane = trains::trains[current_lane + 1];
-            if (train_in_lane.z && (train_in_lane.z < cam_z + 20)) { // high camera
+            if (game_state == GameState::Playing && train_in_lane.z && (train_in_lane.z < cam_z + 20)) { // high camera
                 target_cam_y = 7;
                 target_cam_y_bottom = 2.5;
                 target_cam_z_look_at_bottom_offset = -6;
@@ -186,7 +186,7 @@ namespace sloppy_surfers {
 
         float target_x = 0;
         float x = 0;
-        float y = -2;
+        float y = -2.5;
         float z = 0;
 
         const float scale = 0.15;
