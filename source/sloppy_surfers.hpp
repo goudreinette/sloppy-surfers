@@ -58,7 +58,6 @@ namespace sloppy_surfers {
 
     
 
-
     // lanes
     float lane_gap = 2.5;
     int current_lane = 0; // -1 / 0 / 1
@@ -131,8 +130,9 @@ namespace sloppy_surfers {
 
         float target_cam_z = cam_z;
         float target_cam_z_look_at_bottom_offset = cam_z_look_at_bottom_offset;
-        
 
+        bool is_rewinding = false;
+        
         float z_look_at_distance = -10;
 
 
@@ -165,6 +165,13 @@ namespace sloppy_surfers {
             cam_y_bottom = utils::lerp(cam_y_bottom, target_cam_y_bottom, lerp_speed);
             cam_z_look_at_bottom_offset = utils::lerp(cam_z_look_at_bottom_offset, target_cam_z_look_at_bottom_offset, lerp_speed);
 
+            // Rewinding
+            if (is_rewinding) {
+                cam_z = utils::lerp(cam_z, target_cam_z, .05);
+                if (abs(cam_z - target_cam_z) < 2) {
+                    is_rewinding = false;
+                }
+            }
 
             NE_CameraSet(scene->camera_top,
                 cam_x, cam_y, cam_z, // position
@@ -338,10 +345,12 @@ namespace sloppy_surfers {
 
         void update() {
             // Update ground 
-            if (ground_start_z < cameras::cam_z - 20) {
-                ground_start_z += 10;
+            if (!cameras::is_rewinding) {
+                if (ground_start_z < cameras::cam_z - 20) {
+                    ground_start_z += 10;
+                }
             }
-        }
+}
 
         void draw(SceneData* scene) {
             // draw ground
@@ -367,12 +376,14 @@ namespace sloppy_surfers {
         const int num_pole_parts = 7;
 
         void update() {
-            if (track_start_z < cameras::cam_z - 10) {
-                track_start_z += 7;
-            }
-            
-            if (pole_start_z < cameras::cam_z - 28) {
-                pole_start_z += 28;
+            if (!cameras::is_rewinding) {
+                if (track_start_z < cameras::cam_z - 10) {
+                    track_start_z += 7;
+                }
+                
+                if (pole_start_z < cameras::cam_z - 28) {
+                    pole_start_z += 28;
+                }
             }
         }
 
@@ -521,6 +532,32 @@ namespace sloppy_surfers {
     }
 
 
+    void restart() {
+        frame = 0;
+        speed = 0.075;
+        score = 0;
+        coins_collected = 0;
+
+        trains::trains[0].z = 50 + rand() % 20;
+        trains::trains[1].z = 100 + rand() % 20;
+        trains::trains[2].z = 150 + rand() % 20;
+
+        for (trains::train &t: trains::trains) {
+            t.hit = false;
+        }
+
+        game_state = GameState::Playing;
+
+        tracks::track_start_z = -10;
+        tracks::pole_start_z = -10;
+        ground::ground_start_z = -10;
+
+        cameras::target_cam_z = -10.0;
+        cameras::is_rewinding = true;
+
+        player::hit = false;
+}
+
 
 
     // MAIN -------------------------------------------
@@ -606,6 +643,12 @@ namespace sloppy_surfers {
 
                 if (!keys_up & KEY_TOUCH) {
                     swipe_detection::is_swiping = false;
+                }
+            } 
+
+            if (game_state == GameState::GameOver) {
+                if (kdown & KEY_TOUCH) {
+                    restart();
                 }
             }
             
