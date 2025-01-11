@@ -184,28 +184,45 @@ namespace sloppy_surfers {
     namespace player {
         NE_Animation *walk;
 
-        float target_x = 0;
+        float rotation_y = 130;
+        float target_rotation_y = rotation_y;
+
         float x = 0;
         float y = -2.5;
         float z = 0;
 
+        float target_x = 0;
+        float target_z = 0;
+
         const float scale = 0.15;
 
-        void update() {
-            target_x = (float) current_lane * lane_gap;
-            x = utils::lerp(x, target_x, 0.2);
-            z = cameras::cam_z + 2.5;
+        bool hit = false;
 
+        void update() {
             for (trains::train &t: trains::trains) {
                 if (abs(t.x - x) < 1 && abs(t.z - z) < 8.25) {
                     t.hit = true;
+                    hit = true;
+                    target_z = cameras::cam_z - 2;
+                    target_x = rand() % 5 - 6;
+                    target_rotation_y += 20;
                     game_state = GameState::GameOver;
                 }
             }
+
+            if (hit) {
+                z = utils::lerp(z, target_z, 0.1);
+                // y = utils::lerp(y, target_rotation_y, 0.1);
+            } else {
+                z = cameras::cam_z + 2.5;
+                target_x = (float) current_lane * lane_gap;
+            }
+
+            x = utils::lerp(x, target_x, 0.2);
         }
 
         void draw(SceneData* scene) {
-            NE_ModelSetRot(scene->player, 0, 130, 0);
+            NE_ModelSetRot(scene->player, 0, rotation_y, 0);
             NE_ModelScale(scene->player, scale, scale, scale);
             NE_ModelSetCoord(scene->player, x, y, z);
             NE_ModelDraw(scene->player);
@@ -380,7 +397,7 @@ namespace sloppy_surfers {
     namespace menu {
         void draw(SceneData* scene) {
             if (game_state == GameState::GameOver) {
-                NE_ModelSetCoord(scene->gameover, cameras::cam_x, 0, cameras::cam_z + 8);
+                NE_ModelSetCoord(scene->gameover, cameras::cam_x, .5, cameras::cam_z + 8);
                 NE_ModelDraw(scene->gameover);
             }
         }
