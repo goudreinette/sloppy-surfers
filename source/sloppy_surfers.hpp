@@ -22,6 +22,7 @@
 #include "number9_bin.h"
 
 #include "gameover_bin.h"
+#include "sloppysurfers_bin.h"
 
 #include "texture.h"
 
@@ -52,7 +53,7 @@ namespace sloppy_surfers {
     int score = 0;
     int coins_collected = 0; // maybe?
     int high_score = 0;
-    GameState game_state = GameState::Menu;
+    GameState game_state = GameState::Playing;
 
 
     
@@ -81,6 +82,8 @@ namespace sloppy_surfers {
             float z = 20;
             float scale = 2;
             float x;
+
+            bool hit = false;
         };
         
         train trains[] = {
@@ -91,7 +94,9 @@ namespace sloppy_surfers {
 
         void update(int cam_z) {
             for (train &t: trains) {
-                t.z += -0.3 - speed / 4;
+                if (!t.hit) {
+                    t.z += -0.3 - speed / 4;
+                }
 
                 // respawn in the distance
                 if (t.z < cam_z - 10) {
@@ -190,6 +195,13 @@ namespace sloppy_surfers {
             target_x = (float) current_lane * lane_gap;
             x = utils::lerp(x, target_x, 0.2);
             z = cameras::cam_z + 2.5;
+
+            for (trains::train &t: trains::trains) {
+                if (abs(t.x - x) < 1 && abs(t.z - z) < 8.25) {
+                    t.hit = true;
+                    game_state = GameState::GameOver;
+                }
+            }
         }
 
         void draw(SceneData* scene) {
@@ -365,10 +377,12 @@ namespace sloppy_surfers {
         }
     }
 
-    namespace gameover {
+    namespace menu {
         void draw(SceneData* scene) {
-            NE_ModelSetCoord(scene->gameover, cameras::cam_x, 0, cameras::cam_z + 8);
-            NE_ModelDraw(scene->gameover);
+            if (game_state == GameState::GameOver) {
+                NE_ModelSetCoord(scene->gameover, cameras::cam_x, 0, cameras::cam_z + 8);
+                NE_ModelDraw(scene->gameover);
+            }
         }
     }
 
@@ -390,7 +404,7 @@ namespace sloppy_surfers {
         trains::draw(scene);
         coins::draw(scene);
         player::draw(scene);
-        gameover::draw(scene);
+        menu::draw(scene);
     }
 
     void draw_3d_scene_bottom(void *arg) {
@@ -512,17 +526,12 @@ namespace sloppy_surfers {
         touchPosition touch;
 
         while (1) {
-            // Move forward
-            frame++;
-            cameras::cam_z += speed;
-            speed += 0.00001;
-
             NE_WaitForVBL(NE_UPDATE_ANIMATIONS);
-
             // Draw 3D scenes
             NE_ProcessDualArg(draw_3d_scene_bottom, draw_3d_scene_top, &scene, &scene);
 
-            // Refresh keys
+
+            // Refresh keys and touch
             scanKeys();
             uint32_t keys = keysHeld();
             uint32_t kdown = keysDown();
@@ -530,53 +539,62 @@ namespace sloppy_surfers {
 
             touchRead(&touch);
 
-            // Speed and lane switching
-            // if (keys & KEY_UP) {
-            //     speed += 0.01;
-            // }
-            // if (keys & KEY_DOWN) {
-            //     speed -= 0.01;
-            // }
-            if (kdown & KEY_LEFT) {
-                // NE_ModelRotate(scene.train, 0, 2, 0);
-                if (current_lane < 1) current_lane++;
-            }
-            if (kdown & KEY_RIGHT) {
-                // NE_ModelRotate(scene.train, 0, -2, 0);
-                if (current_lane >= 0) current_lane--;
-            }
 
 
-            // Swipe detection -------------------
-            if (kdown & KEY_TOUCH) {
-                swipe_detection::start_touch_x = touch.px;
-                swipe_detection::start_touch_y = touch.py;
-                swipe_detection::is_swiping = true;
-            }
+            if (game_state == GameState::Playing) {
+                // Move forward
+                frame++;
+                cameras::cam_z += speed;
+                speed += 0.00001;
 
-            if (keys & KEY_TOUCH && swipe_detection::is_swiping) {
-                int distance_x = swipe_detection::start_touch_x - touch.px;
-                int distance_y = swipe_detection::start_touch_y - touch.py;
-                if (distance_x < -10) {
-                    swipe_detection::is_swiping = false;
-                    if (current_lane >= 0) current_lane--;
-                }
-                else if (distance_x > 10) {
-                    swipe_detection::is_swiping = false;
+                // Speed and lane switching
+                // if (keys & KEY_UP) {
+                //     speed += 0.01;
+                // }
+                // if (keys & KEY_DOWN) {
+                //     speed -= 0.01;
+                // }
+                if (kdown & KEY_LEFT) {
+                    // NE_ModelRotate(scene.train, 0, 2, 0);
                     if (current_lane < 1) current_lane++;
                 }
-                else if (distance_y < -20) {
+                if (kdown & KEY_RIGHT) {
+                    // NE_ModelRotate(scene.train, 0, -2, 0);
+                    if (current_lane >= 0) current_lane--;
+                }
+
+                // Swipe detection -------------------
+                if (kdown & KEY_TOUCH) {
+                    swipe_detection::start_touch_x = touch.px;
+                    swipe_detection::start_touch_y = touch.py;
+                    swipe_detection::is_swiping = true;
+                }
+
+                if (keys & KEY_TOUCH && swipe_detection::is_swiping) {
+                    int distance_x = swipe_detection::start_touch_x - touch.px;
+                    int distance_y = swipe_detection::start_touch_y - touch.py;
+                    if (distance_x < -10) {
+                        swipe_detection::is_swiping = false;
+                        if (current_lane >= 0) current_lane--;
+                    }
+                    else if (distance_x > 10) {
+                        swipe_detection::is_swiping = false;
+                        if (current_lane < 1) current_lane++;
+                    }
+                    else if (distance_y < -20) {
+                        swipe_detection::is_swiping = false;
+                        if (current_lane < 2) current_lane++;
+                    }
+                }
+
+                if (!keys_up & KEY_TOUCH) {
                     swipe_detection::is_swiping = false;
-                    if (current_lane < 2) current_lane++;
                 }
             }
+            
 
-            if (!keys_up & KEY_TOUCH) {
-                swipe_detection::is_swiping = false;
-            }
-
-
-
+            
+            // Update everything
             ground::update();
             tracks::update();
             trains::update(cameras::cam_z);

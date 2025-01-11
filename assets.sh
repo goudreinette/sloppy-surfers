@@ -141,6 +141,11 @@ python3 $OBJ2DL \
     --output data/gameover.bin \
     --texture 256 256
 
+python3 $OBJ2DL \
+    --input ./models/sloppysurfers.obj \
+    --output data/sloppysurfers.bin \
+    --texture 256 256
+
 
 # for background in assets/affine-bgs/*.png; do
 #     grit $background -ftb -fh! -gb -gB16
