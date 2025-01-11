@@ -136,6 +136,12 @@ python3 $OBJ2DL \
     --texture 256 256
 
 
+python3 $OBJ2DL \
+    --input ./models/gameover.obj \
+    --output data/gameover.bin \
+    --texture 256 256
+
+
 # for background in assets/affine-bgs/*.png; do
 #     grit $background -ftb -fh! -gb -gB16
 # done

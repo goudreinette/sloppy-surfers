@@ -21,6 +21,7 @@
 #include "number8_bin.h"
 #include "number9_bin.h"
 
+#include "gameover_bin.h"
 
 #include "texture.h"
 
@@ -34,6 +35,7 @@ namespace test_dual_screen {
         NE_Camera *camera_top, *camera_bottom;
         NE_Model *train, *track, *pole, *ground, *coin, *player;
         NE_Model *numbers[10];
+        NE_Model *gameover, *sloppysurfers;
     };
 
 
@@ -363,6 +365,13 @@ namespace test_dual_screen {
         }
     }
 
+    namespace gameover {
+        void draw(SceneData* scene) {
+            NE_ModelSetCoord(scene->gameover, cameras::cam_x, 0, cameras::cam_z + 8);
+            NE_ModelDraw(scene->gameover);
+        }
+    }
+
     
 
     // DRAW the two screens ----------------------------
@@ -381,9 +390,8 @@ namespace test_dual_screen {
         trains::draw(scene);
         coins::draw(scene);
         player::draw(scene);
-
-        coins::draw_coin_count(scene);
-}
+        gameover::draw(scene);
+    }
 
     void draw_3d_scene_bottom(void *arg) {
         SceneData *scene = (SceneData*) arg;
@@ -414,6 +422,7 @@ namespace test_dual_screen {
         scene->pole = NE_ModelCreate(NE_Static);
         scene->ground = NE_ModelCreate(NE_Static);
         scene->coin = NE_ModelCreate(NE_Static);
+        scene->gameover = NE_ModelCreate(NE_Static);
         scene->player = NE_ModelCreate(NE_Animated);
 
         scene->camera_top = NE_CameraCreate();
@@ -425,6 +434,7 @@ namespace test_dual_screen {
         NE_ModelLoadStaticMesh(scene->pole, pole_bin);
         NE_ModelLoadStaticMesh(scene->ground, ground_bin);
         NE_ModelLoadStaticMesh(scene->coin, coin_bin);
+        NE_ModelLoadStaticMesh(scene->gameover, gameover_bin);
 
         // Numbers
         for (int i = 0; i < 10; i++) {
@@ -537,7 +547,7 @@ namespace test_dual_screen {
             }
 
 
-            // Swipe detection ----------------
+            // Swipe detection -------------------
             if (kdown & KEY_TOUCH) {
                 swipe_detection::start_touch_x = touch.px;
                 swipe_detection::start_touch_y = touch.py;
