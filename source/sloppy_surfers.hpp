@@ -686,7 +686,7 @@ namespace sloppy_surfers {
             } 
 
             if (game_state == GameState::GameOver) {
-                if (kdown & KEY_TOUCH) {
+                if (kdown & KEY_TOUCH || kdown & KEY_A || kdown & KEY_START) {
                     restart();
                 }
             }
