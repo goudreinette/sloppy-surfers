@@ -704,5 +704,4 @@ namespace sloppy_surfers {
 
         return 0;
     }
-
 }
