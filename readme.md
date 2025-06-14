@@ -1,5 +1,5 @@
 
-![](./But%20Can%20It%20Run%20Doom_Rein%20van%20der%20Woerd_Janne%20Schimmel_Super%20Dakota.jpg)
+![](./canitrundoom.jpg)
 
 
 ## Sloppy Surfers

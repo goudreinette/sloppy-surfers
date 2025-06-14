@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <format> 
+#include <math.h>
 
 #include "trein_bin.h"
 #include "ground_bin.h"
@@ -27,6 +28,8 @@
 #include "gameover_bin.h"
 #include "hiscore_bin.h"
 #include "sloppysurfers_bin.h"
+#include "tree_bin.h"
+#include "tree2_bin.h"
 
 #include "texture.h"
 
@@ -36,11 +39,11 @@
 #define SKY_COLOR RGB15(18, 28, 31)
 
 namespace sloppy_surfers {
-    NE_Material *material;
+    NE_Material *material, *textMaterial;
     
     struct SceneData {
         NE_Camera *camera_top, *camera_bottom;
-        NE_Model *train, *track, *pole, *ground, *coin, *player;
+        NE_Model *train, *track, *pole, *tree, *tree2, *ground, *coin, *player;
         NE_Model *numbers[10];
         NE_Model *gameover, *sloppysurfers, *hiscore;
     };
@@ -60,6 +63,7 @@ namespace sloppy_surfers {
     int coins_collected = 0; // maybe?
     int high_score = 0;
     GameState game_state = GameState::Playing;
+    int gameover_timeout = 0;
 
 
     
@@ -105,7 +109,20 @@ namespace sloppy_surfers {
 
                 // respawn in the distance
                 if (t.z < cam_z - 10) {
-                    t.z = cam_z + 50 + rand() % 150;
+                    int max_distance = 0;
+                    for (train &tt: trains) {
+                        if (tt.z > max_distance) {
+                            max_distance = tt.z;
+                        }
+                    }
+
+                    // always keep distance from other trains!
+                    // if (max_distance > cam_z + 100) {
+                        t.z = max_distance + 30 + rand() % 50;
+                    // } else {
+                    //     t.z = 100 + rand() % 50;
+                    // }
+                    
                 }
             }     
         }
@@ -200,6 +217,7 @@ namespace sloppy_surfers {
         float rotation_y = 130;
         float target_rotation_y = rotation_y;
 
+        float ground_y = -2.5;
         float x = 0;
         float y = -2.5;
         float z = 0;
@@ -211,7 +229,32 @@ namespace sloppy_surfers {
 
         bool hit = false;
 
-        void update() {
+        bool jumping = false;
+        float vy = 0;
+        float gravity = .025;
+
+
+        void jump() {
+            jumping = true;
+            vy = .4;
+        }
+
+        void update(uint32_t kdown) {
+            // Jumping
+            if ((kdown & KEY_A || kdown & KEY_UP) && !jumping) {
+                jump();
+            }
+
+            y += vy;
+            vy -= gravity;
+
+            if (y <= ground_y) {
+                y = ground_y;
+                jumping = false;
+                vy = 0;
+            }
+
+            // Detect collisions
             for (trains::train &t: trains::trains) {
                 // GameOver state
                 if (abs(t.x - x) < 1 && abs(t.z - z) < 8.25) {
@@ -221,6 +264,7 @@ namespace sloppy_surfers {
                     target_x = rand() % 5 - 6;
                     target_rotation_y = 150;
                     game_state = GameState::GameOver;
+                    gameover_timeout = 0;
                 }
             }
 
@@ -243,6 +287,55 @@ namespace sloppy_surfers {
         }
     }
 
+    // trees ----
+
+    namespace trees {
+        int tree_offset = 8;
+
+        struct tree {
+            int x, z;
+            int tree_model_i;
+        };
+
+        std::vector<tree> trees;
+
+        void update() {
+            if (frame % 180 == 0) {
+                if (trees.size() < 3) {
+                    tree t = tree();
+                    t.x = rand() % 2 == 0 ? tree_offset + (rand() % 10) / 5.0 : -tree_offset + (rand() % 10) / 5.0 ;
+                    t.z = cameras::cam_z + 40 + rand() % 3;
+                    t.tree_model_i = rand() % 2;
+
+
+
+                    trees.push_back(t);
+                }
+               
+            }
+
+            for (int i = 0; i < trees.size(); i++) {
+                tree *c = &trees.at(i);
+                if (c->z < cameras::cam_z - 10) {
+                    trees.erase(trees.begin() + i);
+                }
+            }
+        }
+
+        void draw(SceneData* scene) {
+            for (tree &t : trees) {
+                if (t.tree_model_i == 0) {
+                    NE_ModelSetCoord(scene->tree, t.x, 0, t.z);
+                    NE_ModelDraw(scene->tree);
+                } 
+                if  (t.tree_model_i == 1) {
+                    NE_ModelSetCoord(scene->tree2, t.x, 0, t.z);
+                    NE_ModelDraw(scene->tree2);
+                } 
+                
+            }
+        }
+    }
 
     // coins ---------------------------
     namespace coins {
@@ -335,7 +428,7 @@ namespace sloppy_surfers {
             NE_ModelDraw(scene->coin);
 
             // the score
-            std::string coin_count_str = std::format("{}", coins_collected);
+            std::string coin_count_str = std::format("{}", coins_collected); //
             for (int i = 0; i < coin_count_str.size(); i++) {
                 int number = std::stoi(coin_count_str.substr(i, 1));
                 NE_Model* number_to_draw = scene->numbers[number];
@@ -371,6 +464,7 @@ namespace sloppy_surfers {
         int ground_start_z = -10;
 
         void update() {
+            
             // Update ground 
             if (!cameras::is_rewinding) {
                 if (ground_start_z < cameras::cam_z - 20) {
@@ -389,6 +483,8 @@ namespace sloppy_surfers {
             }
         }
     }
+
+    
 
 
     // tracks  ---------------------------
@@ -432,11 +528,19 @@ namespace sloppy_surfers {
         }
     }
 
+
     namespace menu {
         void draw(SceneData* scene) {
             if (game_state == GameState::GameOver) {
-                NE_ModelSetCoord(scene->gameover, cameras::cam_x, .5, cameras::cam_z + 8);
-                NE_ModelDraw(scene->gameover);
+                float y = sinf((float) frame / 20.0) * 0.25 + 0.5;
+
+                if (gameover_timeout < 240) {
+                    NE_ModelSetCoord(scene->gameover, cameras::cam_x, y, cameras::cam_z + 8);
+                    NE_ModelDraw(scene->gameover);
+                } else {
+                    NE_ModelSetCoord(scene->sloppysurfers, cameras::cam_x, y, cameras::cam_z + 8);
+                    NE_ModelDraw(scene->sloppysurfers);
+                }
             }
         }
     }
@@ -460,7 +564,8 @@ namespace sloppy_surfers {
         coins::draw(scene);
         player::draw(scene);
         menu::draw(scene);
-    }
+        trees::draw(scene)
+;    }
 
     void draw_3d_scene_bottom(void *arg) {
         SceneData *scene = (SceneData*) arg;
@@ -477,6 +582,7 @@ namespace sloppy_surfers {
         trains::draw(scene);
         coins::draw(scene);
         player::draw(scene);
+        trees::draw(scene);
 
         // UI
         coins::draw_coin_count(scene);
@@ -489,6 +595,8 @@ namespace sloppy_surfers {
         scene->train = NE_ModelCreate(NE_Static);
         scene->track = NE_ModelCreate(NE_Static);
         scene->pole = NE_ModelCreate(NE_Static);
+        scene->tree = NE_ModelCreate(NE_Static);
+        scene->tree2 = NE_ModelCreate(NE_Static);
         scene->ground = NE_ModelCreate(NE_Static);
         scene->coin = NE_ModelCreate(NE_Static);
         scene->gameover = NE_ModelCreate(NE_Static);
@@ -503,6 +611,8 @@ namespace sloppy_surfers {
         NE_ModelLoadStaticMesh(scene->train, trein_bin);
         NE_ModelLoadStaticMesh(scene->track, track_bin);
         NE_ModelLoadStaticMesh(scene->pole, pole_bin);
+        NE_ModelLoadStaticMesh(scene->tree, tree_bin);
+        NE_ModelLoadStaticMesh(scene->tree2, tree2_bin);
         NE_ModelLoadStaticMesh(scene->ground, ground_bin);
         NE_ModelLoadStaticMesh(scene->coin, coin_bin);
         NE_ModelLoadStaticMesh(scene->gameover, gameover_bin);
@@ -547,9 +657,28 @@ namespace sloppy_surfers {
         NE_ModelSetMaterial(scene->train, material);
         NE_ModelSetMaterial(scene->track, material);
         NE_ModelSetMaterial(scene->ground, material);
+        NE_ModelSetMaterial(scene->tree, material);
+        NE_ModelSetMaterial(scene->tree2, material);
         NE_ModelSetMaterial(scene->pole, material);
         NE_ModelSetMaterial(scene->coin, material);
         NE_ModelSetMaterial(scene->hiscore, material);
+
+        // Create title and gameover material
+        textMaterial = NE_MaterialCreate();
+
+        NE_MaterialSetProperties(textMaterial,
+            RGB15(31, 24, 0), // diffuse
+            RGB15(15, 7, 0), // ambient
+            RGB15(15, 7, 0), // specular
+            RGB15(15, 7, 0), // emission
+            false, // vtxcolor
+            false // useshininess
+        );
+
+        NE_ModelSetMaterial(scene->gameover, textMaterial);
+        NE_ModelSetMaterial(scene->sloppysurfers, textMaterial);
+
+
 
         // Set light color and direction
         NE_LightSet(0, NE_White, -0.5, -0.5, -0.5);
@@ -591,6 +720,7 @@ namespace sloppy_surfers {
         player::rotation_y = 130;
 
         coins::coins.clear();
+        trees::trees.clear();
 }
 
 
@@ -632,9 +762,8 @@ namespace sloppy_surfers {
 
             if (game_state == GameState::Playing) {
                 // Move forward
-                frame++;
                 cameras::cam_z += speed;
-                speed += 0.00001;
+                speed += 0.00002; //0.00001
                 
                 if (frame % 10 == 0) {
                     score += 1;
@@ -674,9 +803,14 @@ namespace sloppy_surfers {
                         swipe_detection::is_swiping = false;
                         if (current_lane < 1) current_lane++;
                     }
-                    else if (distance_y < -20) {
+                    else if (distance_y > 10) {
+
                         swipe_detection::is_swiping = false;
-                        if (current_lane < 2) current_lane++;
+                        if (!player::jumping) {
+                            player::jump();
+                        }
+
+                        // if (current_lane < 2) current_lane++;
                     }
                 }
 
@@ -686,7 +820,14 @@ namespace sloppy_surfers {
             } 
 
             if (game_state == GameState::GameOver) {
-                if (kdown & KEY_TOUCH || kdown & KEY_A || kdown & KEY_START) {
+                gameover_timeout++;
+                
+                if (gameover_timeout == 240) {
+                    // cameras::target_cam_z = -10.0;
+                    // cameras::is_rewinding = true;
+                }
+
+                if (kdown & KEY_TOUCH || kdown & KEY_A || kdown & KEY_START || kdown & KEY_LEFT || kdown & KEY_RIGHT || kdown & KEY_UP) {
                     restart();
                 }
             }
@@ -698,8 +839,11 @@ namespace sloppy_surfers {
             tracks::update();
             trains::update(cameras::cam_z);
             coins::update();
-            player::update();
+            player::update(kdown);
             cameras::update(&scene);
+            trees::update();
+
+            frame++;
         }
 
         return 0;
