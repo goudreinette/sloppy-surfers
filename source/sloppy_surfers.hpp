@@ -359,7 +359,7 @@ namespace sloppy_surfers {
 
 
         void update() {
-            if (frame % 45 == 0) {
+            if (frame % 45 == 0 && coins.size() < 20) {
                 coin new_coin = coin();
                 new_coin.x = (rand() % 3 - 1) * lane_gap;
                 new_coin.y = -2;
